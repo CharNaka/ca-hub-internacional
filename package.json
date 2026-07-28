@@ -1,0 +1,7 @@
+{
+  "name": "ca-hub-internacional",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Hub de Inteligência da CA Consultoria Internacional — proxy de dados ao vivo (ComexStat, PTAX, AIS).",
+  "dependencies": { "ws": "^8.18.0" }
+}
