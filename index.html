@@ -186,7 +186,8 @@
   }
   .menu-btn{display:none;place-items:center;width:38px;height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;margin-right:14px}
   .menu-btn svg{width:20px;height:20px;stroke:var(--k-800)}
-  @media print{.sidebar,.topbar,.no-print{display:none !important}.content{padding:0;max-width:none}.view:not(.active){display:none !important}.view.active{display:block !important}}
+  .content.wide{max-width:none}
+@media print{.sidebar,.topbar,.no-print{display:none !important}.content{padding:0;max-width:none}.view:not(.active){display:none !important}.view.active{display:block !important}}
 </style>
 <script>try{if(location.protocol.indexOf("http")===0){if(!localStorage.getItem("ca_apibase"))localStorage.setItem("ca_apibase",location.origin+"/.netlify/functions");if(localStorage.getItem("ca_live")===null)localStorage.setItem("ca_live","1");}}catch(e){}</script>
 </head>
@@ -228,6 +229,8 @@
     <a data-view="painel" onclick="go('painel')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>Painel Comex — Nichos</a>
     <a data-view="cdn" onclick="go('cdn')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>Círculo Diplomático</a>
 
+    <div class="nav-group">Conteúdo</div>
+    <a data-view="agenda" onclick="go('agenda')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h3M8 18h5"/></svg>Agenda de Conteúdo</a>
     <div class="nav-group">Arquivo</div>
     <a data-view="docs" onclick="go('docs')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 4h6l2 2h8v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4z"/><path d="M12 11v6M9 14h6"/></svg>Documentos (Drive)</a>
     <a data-view="fontes" onclick="go('fontes')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>Fontes de Dados</a>
@@ -475,7 +478,7 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
   <!-- MERCADO -->
   <section class="view" id="v-mercado">
     <div class="sec-kicker">Analista de Comércio Exterior</div>
-    <h2 class="sec-title">Análise de Mercado Internacional <span class="tag beta">Dados de amostra</span></h2>
+    <h2 class="sec-title">Análise de Mercado Internacional <span class="tag live">ComexStat · ligar em Fontes</span></h2>
     <p class="lead">Dados oficiais ComexStat com rankings de destinos, tendências de exportação, sazonalidade e volume por NCM. Identifique os mercados mais promissores. A estrutura está pronta; os números serão substituídos pela conexão às fontes oficiais.</p>
     <div class="card card-pad" style="margin-bottom:20px">
       <div class="row r2" style="max-width:520px">
@@ -495,9 +498,15 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
   <!-- NCM -->
   <section class="view" id="v-ncm">
     <div class="sec-kicker">Despachante Aduaneiro</div>
-    <h2 class="sec-title">Explorador NCM <span class="tag beta">Dados de amostra</span></h2>
+    <h2 class="sec-title">Explorador NCM <span class="tag live">Consulta ao vivo</span></h2>
     <p class="lead">Pesquise por código, produto ou setor. Base inicial focada nos 13 setores premium do CDN — expansível para os 13.000+ NCMs via tabela oficial.</p>
     <div class="field" style="max-width:460px"><input id="ncmSearch" placeholder="Buscar: café, joias, 9403, vinho…" oninput="renderNcm()"></div>
+    <div class="card card-pad" style="margin:14px 0">
+      <h4 style="font-size:14px;color:var(--k-800);margin-bottom:10px">Consulta ao vivo — ComexStat (MDIC)</h4>
+      <div class="row r3"><div class="field" style="margin-bottom:0"><label>NCM / SH4</label><input id="ncmLive" value="0901" placeholder="ex.: 0901"></div><div class="field" style="margin-bottom:0"><label>Fluxo</label><select id="ncmFlow"><option value="export">Exportação</option><option value="import">Importação</option></select></div><div class="field" style="margin-bottom:0"><label>Ano</label><input id="ncmYear" value="2024"></div></div>
+      <button class="btn btn-gold no-print" style="margin-top:10px" onclick="ncmLive()">Consultar</button>
+      <div id="ncmLiveOut" class="muted" style="margin-top:12px">Ative "ao vivo" em Fontes de Dados para consultar as estatísticas oficiais.</div>
+    </div>
     <div class="card" style="overflow:hidden"><table class="data" id="ncmTable"></table></div>
     <div class="sources"><b>Fontes oficiais</b><span class="src-chip">HS/NCM Global</span><span class="src-chip">ComexStat (MDIC)</span><span class="src-chip">ANVISA · MAPA · INMETRO</span></div>
   </section>
@@ -531,16 +540,41 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
     <div class="card card-pad" id="alertsList"></div>
   </section>
 
+  <!-- AGENDA DE CONTEUDO -->
+  <section class="view" id="v-agenda">
+    <div class="sec-kicker">Conteúdo · @charmainealvesoficial</div>
+    <h2 class="sec-title">Agenda de Conteúdo — 4º Trimestre 2026 <span class="tag live">Planejamento</span></h2>
+    <p class="lead">Cadência da arquitetura editorial: segunda publica Reel, terça produz, quarta publica Carrossel/Post, Stories diários. Rotação dos quadros Mercado na Pele, 20 Anos Depois e Cartografia sobre os pilares.</p>
+    <div class="note" style="border-left-color:var(--warn);margin-bottom:18px"><b>Ressalva:</b> nenhum episódio do quadro <b>Mercado na Pele</b> foi gravado ainda — os itens abaixo são plano a gravar, não publicado.</div>
+    <div class="row r2 no-print" style="max-width:560px;margin-bottom:16px">
+      <div class="field" style="margin-bottom:0"><label>Mês</label><select id="agMes" onchange="renderAgenda()"><option value="todos">Todo o trimestre</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select></div>
+      <div class="field" style="margin-bottom:0"><label>Quadro</label><select id="agQuadro" onchange="renderAgenda()"><option value="todos">Todos os quadros</option><option>Mercado na Pele</option><option>20 Anos Depois</option><option>Cartografia</option></select></div>
+    </div>
+    <div class="card" style="overflow:hidden"><table class="data" id="agTable"></table></div>
+    <div class="sources"><b>Base</b><span class="src-chip">Arquitetura Editorial CA 2026</span><span class="src-chip">Pilares 1–5</span><span class="src-chip">Quadros CA</span></div>
+  </section>
+
   <!-- FEIRAS -->
   <section class="view" id="v-feiras">
     <div class="sec-kicker">Agenda Internacional</div>
-    <h2 class="sec-title">Calendário de Feiras Internacionais <span class="tag beta">Dados de amostra</span></h2>
-    <p class="lead">Agenda de feiras e eventos de comércio exterior com análise de relevância. Filtre por setor e veja o que está confirmado ou previsto. Ordenado cronologicamente.</p>
-    <div class="row r2 no-print" style="max-width:520px;margin-bottom:18px">
-      <div class="field" style="margin-bottom:0"><label>Setor</label><select id="feiraSetor" onchange="renderFeiras()"></select></div>
-      <div class="field" style="margin-bottom:0"><label>Situação</label><select id="feiraStatus" onchange="renderFeiras()"><option value="todos">Todas</option><option value="Confirmada">Confirmadas</option><option value="Prevista">Previstas</option></select></div>
+    <h2 class="sec-title">Feiras Internacionais <span class="tag live">Base CA</span></h2>
+    <p class="lead">Base curada de feiras internacionais por setor, com NCM/SH associado e o selo das feiras da CA (pleiteando, convidada, confirmada). Apenas eventos futuros, em ordem cronológica.</p>
+    <div class="card card-pad no-print" style="margin-bottom:18px">
+      <div class="row r3">
+        <div class="field" style="margin-bottom:0"><label>Buscar</label><input id="feiraQ" placeholder="Evento, cidade, país…" oninput="renderFeiras()"></div>
+        <div class="field" style="margin-bottom:0"><label>Setor</label><select id="feiraSetor" onchange="renderFeiras()"></select></div>
+        <div class="field" style="margin-bottom:0"><label>Situação</label><select id="feiraStatus" onchange="renderFeiras()"><option value="todos">Todas</option><option value="conf">Data confirmada</option><option value="prev">Mês/ano a confirmar</option></select></div>
+      </div>
+      <div class="row r3" style="margin-top:12px">
+        <div class="field" style="margin-bottom:0"><label>Selo CA</label><select id="feiraCA" onchange="renderFeiras()"><option value="todos">Todas</option><option value="pleiteando">Pleiteando</option><option value="convidada">Convidada</option><option value="confirmada">Confirmada CA</option><option value="marcadas">Só as minhas</option></select></div>
+        <div class="field" style="margin-bottom:0;display:flex;align-items:flex-end"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600"><input type="checkbox" id="feiraFut" checked onchange="renderFeiras()" style="width:16px;height:16px;flex:0 0 16px"> Somente futuras</label></div>
+        <div style="display:flex;align-items:flex-end"><div class="toggle" style="margin:0"><button id="fvList" class="on" onclick="setFeiraView('list')">Lista</button><button id="fvMap" onclick="setFeiraView('map')">Mapa</button></div></div>
+      </div>
     </div>
+    <div class="grid g3" id="feiraKpis" style="margin-bottom:18px"></div>
+    <div id="feiraMapWrap" class="card" style="overflow:hidden;display:none;margin-bottom:18px"><div id="feiraMap" style="width:100%;height:58vh"></div></div>
     <div class="card" style="overflow:hidden"><table class="data" id="feirasTable"></table></div>
+    <div class="sources"><b>Fontes</b><span class="src-chip">Organizadores oficiais</span><span class="src-chip">ApexBrasil · feiras</span><span class="src-chip">ExportIA · eventos</span><span class="src-chip">NCM/SH por setor</span></div>
   </section>
 
   <!-- RADAR -->
@@ -603,12 +637,11 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
   <section class="view" id="v-mercosul">
     <div class="sec-kicker">Acordo Mercosul–União Europeia</div>
     <h2 class="sec-title">Painel Mercosul–UE: Oportunidades por Estado <span class="tag live">Painel CA</span></h2>
-    <p class="lead">Mapeamento de produtos brasileiros com ganho de acesso ao mercado europeu — cruzando desgravação tarifária, capacidade exportadora estadual e barreiras não tarifárias. Painel proprietário da CA, embutido aqui.</p>
-    <div style="margin-bottom:14px"><a class="btn btn-ghost no-print" href="https://painel-mercosul-ue-ca-consultoria.netlify.app/" target="_blank" rel="noopener">Abrir em nova aba</a></div>
-    <div class="card" style="overflow:hidden;padding:0">
-      <iframe src="https://painel-mercosul-ue-ca-consultoria.netlify.app/" style="width:100%;height:82vh;border:0;display:block" loading="lazy" title="Painel Mercosul-UE CA"></iframe>
+    <p class="lead">Mapeamento de produtos brasileiros com ganho de acesso ao mercado europeu. Painel proprietário da CA, em tela cheia.</p>
+    <div style="margin-bottom:12px" class="no-print"><a class="btn btn-ghost" href="https://painel-mercosul-ue-ca-consultoria.netlify.app/" target="_blank" rel="noopener">Abrir em nova aba ↗</a></div>
+    <div style="overflow:hidden;border-radius:12px;border:1px solid var(--line)">
+      <iframe src="https://painel-mercosul-ue-ca-consultoria.netlify.app/" style="width:100%;height:90vh;border:0;display:block" loading="lazy" title="Painel Mercosul-UE CA"></iframe>
     </div>
-    <div class="sources"><b>Fontes</b><span class="src-chip">ComexStat (MDIC)</span><span class="src-chip">TARIC · Access2Markets (UE)</span><span class="src-chip">UN Comtrade · ITC Trade Map</span></div>
   </section>
 
   <!-- FONTES DE DADOS -->
@@ -650,7 +683,7 @@ function total_(a,b){return `<div class="result-total"><span class="rt-label">${
   $('todayDate').textContent=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   $('iv_date').value=d.toLocaleDateString('pt-BR');})();
 
-const titles={dashboard:'Painel Geral',simulador:'Simulador de Custos',preco:'Formação de Preço',proposta:'Precificação & Proposta',invoice:'Invoice & Packing List',relatorio:'Relatório Unificado',cubagem:'Logística & Cubagem 3D',embarques:'Controle de Embarques',rastreio:'Rastreamento Global',mercado:'Análise de Mercado',ncm:'Explorador NCM',buyer:'BuyerFinder',exportadores:'Exportadores Brasileiros',alertas:'Alertas Regulatórios',feiras:'Feiras Internacionais',radar:'Radar GeoAssets',painel:'Painel Comex — Nichos',cdn:'Círculo Diplomático',mercosul:'Painel Mercosul–UE',docs:'Documentos',fontes:'Fontes de Dados'};
+const titles={dashboard:'Painel Geral',simulador:'Simulador de Custos',preco:'Formação de Preço',proposta:'Precificação & Proposta',invoice:'Invoice & Packing List',relatorio:'Relatório Unificado',cubagem:'Logística & Cubagem 3D',embarques:'Controle de Embarques',rastreio:'Rastreamento Global',mercado:'Análise de Mercado',ncm:'Explorador NCM',buyer:'BuyerFinder',exportadores:'Exportadores Brasileiros',alertas:'Alertas Regulatórios',feiras:'Feiras Internacionais',radar:'Radar GeoAssets',painel:'Painel Comex — Nichos',cdn:'Círculo Diplomático',mercosul:'Painel Mercosul–UE',agenda:'Agenda de Conteúdo',docs:'Documentos',fontes:'Fontes de Dados'};
 let cubeInit=false, mapInit=false;
 function go(v){
   document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
@@ -663,6 +696,9 @@ function go(v){
   if(v==='cubagem'){ if(!cubeInit){initCube();cubeInit=true;} setTimeout(calcCube,60); }
   if(v==='rastreio'){ if(!mapInit){initMap();mapInit=true;} setTimeout(()=>{if(trackMap)trackMap.invalidateSize();maybeLiveAIS();},400); }
   if(v==='fontes') renderFontes();
+  if(v==='feiras') renderFeiras();
+  if(v==='agenda') renderAgenda();
+  document.querySelector('.content').classList.toggle('wide', v==='mercosul');
 }
 function toggleMenu(force){const sb=$('sidebar'),bd=$('backdrop');const open=force===true?false:!sb.classList.contains('open');sb.classList.toggle('open',open);bd.classList.toggle('show',open);}
 
@@ -696,6 +732,7 @@ const modules=[
   {v:'buyer',t:'BuyerFinder',d:'Compradores reais com score e contato verificado.',tag:'beta',ico:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/>'},
   {v:'exportadores',t:'Exportadores BR',d:'Base de exportadores com CNPJ, produtos e destinos.',tag:'beta',ico:'<path d="M3 21h18M5 21V7l7-4 7 4v14"/>'},
   {v:'mercosul',t:'Painel Mercosul–UE',d:'Oportunidades por estado com o acordo Mercosul–UE.',tag:'live',ico:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18"/>'},
+  {v:'agenda',t:'Agenda de Conteúdo',d:'Cadência editorial do trimestre (Reels, carrosséis, quadros).',tag:'live',ico:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'},
 ];
 $('moduleGrid').innerHTML=modules.map(m=>`
   <div class="module-card" onclick="go('${m.v}')">
@@ -953,22 +990,163 @@ const alerts=[
 $('alertsList').innerHTML=alerts.map(a=>`<div class="alert-row"><span class="alert-dot sev-${a[0]}"></span><div><h5>${a[1]}</h5><div class="a-meta">${a[2]}</div></div></div>`).join('');
 
 /* FEIRAS */
-const feiras=[
- {nome:'Gulfood Dubai',local:'Dubai World Trade Centre',iso:'2026-02-17',data:'17–21 Fev 2026',setor:'Alimentos/Bebidas',status:'Confirmada'},
- {nome:'Cosmoprof Bologna',local:'Bologna Fiere',iso:'2026-03-19',data:'19–22 Mar 2026',setor:'Dermocosméticos',status:'Confirmada'},
- {nome:'iSaloni Milano',local:'Rho Fiera',iso:'2026-04-14',data:'14–19 Abr 2026',setor:'Móveis/design',status:'Confirmada'},
- {nome:'Vinexpo Paris',local:'Paris Expo',iso:'2026-06-15',data:'15–17 Jun 2026',setor:'Vinhos e whiskey',status:'Prevista'},
- {nome:'Anuga Cologne',local:'Koelnmesse',iso:'2026-10-04',data:'04–08 Out 2026',setor:'Bebidas',status:'Confirmada'},
- {nome:'SIAL Paris',local:'Paris Nord Villepinte',iso:'2026-10-18',data:'18–22 Out 2026',setor:'Alimentos',status:'Confirmada'},
- {nome:'Pet South America',local:'São Paulo Expo',iso:'2026-08-19',data:'19–21 Ago 2026',setor:'Pet shop',status:'Prevista'},
+const FNCM = {
+  "Indústria & Manufatura":"Cap. 84 (máquinas), 85 (equip. elétricos), 73 (obras de ferro/aço), 90 (instrumentos)",
+  "Alimentos & Bebidas":"0201/0202 carnes, 0304 pescados, 0901 café, 1701 açúcar, 2009 sucos, 2106 prep. alimentícias, 22 bebidas",
+  "Vinhos & Destilados":"2204 vinhos, 2205 vermutes, 2208 destilados (2208.40 cachaça/rum)",
+  "Agro & Hortifrúti":"0803 banana, 0805 cítricos, 0806 uvas, 0807 melão/melancia, 0810 frutas, 2009 sucos",
+  "Agro & Máquinas Agrícolas":"8432/8433/8436 máq. agrícolas, 8701 tratores, 3808 defensivos, 3105 fertilizantes",
+  "Eletrônicos & Tecnologia":"8517 telefonia, 8471 informática, 8528 monitores, 8542 circuitos integrados",
+  "Telecom & Tecnologia":"8517 telecom, 8544 cabos, 8542 semicondutores, 8471 hardware",
+  "Fintech & Finanças":"Predominantemente serviços (sem NCM) — hardware associado: 8471/8517/8543",
+  "Cosméticos & Beleza":"3303 perfumes, 3304 maquiagem/pele, 3305 cabelo, 3307 higiene, 9616 aplicadores",
+  "Moda & Vestuário":"61 vestuário de malha, 62 vestuário (exceto malha), 6403/6404 calçados, 4202 bolsas",
+  "Calçados & Couro":"6403/6404/6405 calçados, 4107/4114 couros acabados, 4202 artigos de couro",
+  "Joias & Gemas":"7113 joias, 7116 obras de pedras/gemas, 7103 pedras preciosas, 7102 diamantes",
+  "Luxo & Relojoaria":"9101/9102 relógios, 9113 pulseiras, 7113 joias de alto valor",
+  "Móveis & Design":"9401 assentos, 9403 móveis, 9404 colchões, 4418 marcenaria",
+  "Casa, Decoração & Design":"9403 móveis, 6913 cerâmica decorativa, 5701 tapetes, 7013 vidro de mesa, 9405 luminárias",
+  "Construção & Máquinas":"8429/8430 terraplenagem, 2523 cimento, 6907 cerâmica, 7308 estruturas, 3208 tintas",
+  "Turismo & Viagens":"Predominantemente serviços (sem NCM tangível)",
+  "Games & Entretenimento":"9504 videogames/consoles, 8471 hardware, 8523 mídias, 8518 áudio",
+  "Saúde & Medicina":"9018 instrumentos médicos, 9021 próteses/órteses, 9022 raios-x, 3005/3006 mat. médico",
+  "Embalagens":"3923 embalagens plásticas, 4819 papel/cartão, 7010 vidro, 8422 máq. de embalagem",
+  "Alimentos Naturais & Orgânicos":"1806 chocolate, 1904 cereais, 2009 sucos, 2106 suplementos, 0813 frutas secas",
+  "Alimentos & Tecnologia":"8438 máq. p/ alimentos, 8419 térmicas, 8422 envase, 8434 laticínios",
+  "Multissetorial":"Diversos capítulos NCM conforme o setor de cada expositor"
+};
+const FDATA = [
+  // ---------- EUROPA ----------
+  {n:"Hannover Messe",cid:"Hanôver",pais:"Alemanha",cont:"Europa",set:"Indústria & Manufatura",tipo:"Presencial",i:"2027-04-05",f:"2027-04-08",st:"conf",lat:52.32,lng:9.81,url:"https://www.hannovermesse.de"},
+  {n:"Anuga",cid:"Colônia",pais:"Alemanha",cont:"Europa",set:"Alimentos & Bebidas",tipo:"Presencial",i:"2027-10-09",f:"2027-10-13",st:"conf",lat:50.95,lng:6.98,url:"https://www.anuga.com"},
+  {n:"ProWein",cid:"Düsseldorf",pais:"Alemanha",cont:"Europa",set:"Vinhos & Destilados",tipo:"Presencial",i:"2027-03-07",f:"2027-03-09",st:"conf",lat:51.26,lng:6.74,url:"https://www.prowein.com"},
+  {n:"Fruit Logistica",cid:"Berlim",pais:"Alemanha",cont:"Europa",set:"Agro & Hortifrúti",tipo:"Presencial",i:"2027-02-03",f:"2027-02-05",st:"conf",lat:52.50,lng:13.29,url:"https://www.fruitlogistica.com"},
+  {n:"IFA Berlin",cid:"Berlim",pais:"Alemanha",cont:"Europa",set:"Eletrônicos & Tecnologia",tipo:"Presencial",i:"2026-09-04",f:"2026-09-08",st:"conf",lat:52.50,lng:13.27,url:"https://www.ifa-berlin.com"},
+  {n:"Bauma",cid:"Munique",pais:"Alemanha",cont:"Europa",set:"Construção & Máquinas",tipo:"Presencial",i:"2028-04-01",f:null,st:"prev",lat:48.14,lng:11.69,url:"https://www.bauma.de"},
+  {n:"MWC Barcelona",cid:"Barcelona",pais:"Espanha",cont:"Europa",set:"Telecom & Tecnologia",tipo:"Híbrido",i:"2027-03-01",f:"2027-03-04",st:"conf",lat:41.35,lng:2.13,url:"https://www.mwcbarcelona.com"},
+  {n:"SIAL Paris",cid:"Paris",pais:"França",cont:"Europa",set:"Alimentos & Bebidas",tipo:"Presencial",i:"2026-10-17",f:"2026-10-21",st:"conf",lat:48.97,lng:2.51,url:"https://www.sialparis.com"},
+  {n:"Wine Paris & Vinexpo",cid:"Paris",pais:"França",cont:"Europa",set:"Vinhos & Destilados",tipo:"Presencial",i:"2027-02-15",f:null,st:"prev",lat:48.83,lng:2.28,url:"https://www.wineparis-vinexpo.com"},
+  {n:"Maison & Objet",cid:"Paris",pais:"França",cont:"Europa",set:"Casa, Decoração & Design",tipo:"Presencial",i:"2026-09-10",f:"2026-09-14",st:"conf",lat:48.97,lng:2.51,url:"https://www.maison-objet.com"},
+  {n:"Salone del Mobile",cid:"Milão",pais:"Itália",cont:"Europa",set:"Móveis & Design",tipo:"Presencial",i:"2027-04-13",f:"2027-04-18",st:"conf",lat:45.52,lng:9.10,url:"https://www.salonemilano.it"},
+  {n:"Vinitaly",cid:"Verona",pais:"Itália",cont:"Europa",set:"Vinhos & Destilados",tipo:"Presencial",i:"2027-04-11",f:"2027-04-14",st:"conf",lat:45.44,lng:10.99,url:"https://www.vinitaly.com"},
+  {n:"Cosmoprof Worldwide",cid:"Bolonha",pais:"Itália",cont:"Europa",set:"Cosméticos & Beleza",tipo:"Presencial",i:"2027-03-18",f:null,st:"prev",lat:44.53,lng:11.30,url:"https://www.cosmoprof.com"},
+  {n:"Web Summit",cid:"Lisboa",pais:"Portugal",cont:"Europa",set:"Eletrônicos & Tecnologia",tipo:"Híbrido",i:"2026-11-09",f:"2026-11-12",st:"conf",lat:38.77,lng:-9.09,url:"https://websummit.com"},
+  {n:"Watches & Wonders",cid:"Genebra",pais:"Suíça",cont:"Europa",set:"Luxo & Relojoaria",tipo:"Presencial",i:"2027-04-05",f:"2027-04-11",st:"conf",lat:46.23,lng:6.11,url:"https://www.watchesandwonders.com"},
+  // ---------- ÁSIA ----------
+  {n:"Canton Fair (Outono)",cid:"Cantão (Guangzhou)",pais:"China",cont:"Ásia",set:"Multissetorial",tipo:"Híbrido",i:"2026-10-15",f:"2026-11-04",st:"conf",lat:23.10,lng:113.33,url:"https://www.cantonfair.org.cn"},
+  {n:"CIIE — Expo de Importações da China",cid:"Xangai",pais:"China",cont:"Ásia",set:"Multissetorial",tipo:"Presencial",i:"2026-11-05",f:"2026-11-10",st:"conf",lat:31.19,lng:121.30,url:"https://www.ciie.org"},
+  {n:"Cosmoprof Asia",cid:"Hong Kong",pais:"China",cont:"Ásia",set:"Cosméticos & Beleza",tipo:"Presencial",i:"2026-11-11",f:"2026-11-13",st:"conf",lat:22.28,lng:114.16,url:"https://www.cosmoprof-asia.com"},
+  {n:"Jewellery & Gem WORLD",cid:"Hong Kong",pais:"China",cont:"Ásia",set:"Joias & Gemas",tipo:"Presencial",i:"2026-09-16",f:"2026-09-20",st:"conf",lat:22.28,lng:114.16,url:"https://jgw.exhibitions.jewellerynet.com"},
+  {n:"Feira Internacional de Comércio da Índia (IITF)",cid:"Nova Délhi",pais:"Índia",cont:"Ásia",set:"Multissetorial",tipo:"Presencial",i:"2026-11-14",f:"2026-11-27",st:"conf",lat:28.57,lng:77.24,url:"https://www.indiatradefair.com"},
+  {n:"FOODEX Japan",cid:"Tóquio",pais:"Japão",cont:"Ásia",set:"Alimentos & Bebidas",tipo:"Presencial",i:"2027-03-03",f:null,st:"prev",lat:35.63,lng:139.79,url:"https://www.jma.or.jp/foodex/en/"},
+  {n:"Tokyo Game Show",cid:"Chiba",pais:"Japão",cont:"Ásia",set:"Games & Entretenimento",tipo:"Híbrido",i:"2026-09-17",f:"2026-09-21",st:"conf",lat:35.63,lng:140.03,url:"https://tgs.cesa.or.jp/en/"},
+  {n:"Singapore FinTech Festival",cid:"Singapura",pais:"Singapura",cont:"Ásia",set:"Fintech & Finanças",tipo:"Híbrido",i:"2026-11-18",f:"2026-11-20",st:"conf",lat:1.33,lng:103.79,url:"https://www.fintechfestival.sg"},
+  {n:"ITB Asia",cid:"Singapura",pais:"Singapura",cont:"Ásia",set:"Turismo & Viagens",tipo:"Presencial",i:"2026-10-21",f:"2026-10-23",st:"conf",lat:1.33,lng:103.79,url:"https://www.itb-asia.com"},
+  // ---------- ORIENTE MÉDIO ----------
+  {n:"Gulfood",cid:"Dubai",pais:"Emirados Árabes Unidos",cont:"Oriente Médio",set:"Alimentos & Bebidas",tipo:"Presencial",i:"2027-03-15",f:"2027-03-19",st:"conf",lat:25.13,lng:55.22,url:"https://www.gulfood.com"},
+  {n:"GITEX Global",cid:"Dubai",pais:"Emirados Árabes Unidos",cont:"Oriente Médio",set:"Telecom & Tecnologia",tipo:"Presencial",i:"2026-12-07",f:"2026-12-11",st:"conf",lat:25.13,lng:55.22,url:"https://www.gitex.com"},
+  {n:"WHX Dubai (ex-Arab Health)",cid:"Dubai",pais:"Emirados Árabes Unidos",cont:"Oriente Médio",set:"Saúde & Medicina",tipo:"Presencial",i:"2027-01-25",f:"2027-01-28",st:"conf",lat:25.13,lng:55.22,url:"https://www.worldhealthexpo.com/events/healthcare/dubai/"},
+  {n:"The Big 5 Global",cid:"Dubai",pais:"Emirados Árabes Unidos",cont:"Oriente Médio",set:"Construção & Máquinas",tipo:"Presencial",i:"2026-11-23",f:"2026-11-26",st:"conf",lat:25.13,lng:55.22,url:"https://www.big5global.com"},
+  // ---------- AMÉRICA DO NORTE ----------
+  {n:"CES",cid:"Las Vegas",pais:"Estados Unidos",cont:"América do Norte",set:"Eletrônicos & Tecnologia",tipo:"Híbrido",i:"2027-01-06",f:"2027-01-09",st:"conf",lat:36.13,lng:-115.16,url:"https://www.ces.tech"},
+  {n:"NRF Big Show — Varejo",cid:"Nova York",pais:"Estados Unidos",cont:"América do Norte",set:"Multissetorial",tipo:"Presencial",i:"2027-01-10",f:"2027-01-12",st:"conf",lat:40.75,lng:-74.00,url:"https://nrfbigshow.nrf.com"},
+  {n:"SXSW",cid:"Austin",pais:"Estados Unidos",cont:"América do Norte",set:"Eletrônicos & Tecnologia",tipo:"Híbrido",i:"2027-03-15",f:"2027-03-21",st:"conf",lat:30.26,lng:-97.74,url:"https://www.sxsw.com"},
+  {n:"Natural Products Expo West",cid:"Anaheim",pais:"Estados Unidos",cont:"América do Norte",set:"Alimentos Naturais & Orgânicos",tipo:"Presencial",i:"2027-03-02",f:"2027-03-05",st:"conf",lat:33.80,lng:-117.88,url:"https://www.expowest.com"},
+  {n:"MAGIC Las Vegas",cid:"Las Vegas",pais:"Estados Unidos",cont:"América do Norte",set:"Moda & Vestuário",tipo:"Presencial",i:"2026-08-10",f:"2026-08-12",st:"conf",lat:36.13,lng:-115.16,url:"https://www.magicfashionevents.com"},
+  {n:"PACK EXPO International",cid:"Chicago",pais:"Estados Unidos",cont:"América do Norte",set:"Embalagens",tipo:"Presencial",i:"2026-10-18",f:"2026-10-21",st:"conf",lat:41.85,lng:-87.61,url:"https://www.packexpointernational.com"},
+  {n:"Expo CIHAC",cid:"Cidade do México",pais:"México",cont:"América do Norte",set:"Construção & Máquinas",tipo:"Presencial",i:"2026-10-14",f:"2026-10-16",st:"conf",lat:19.43,lng:-99.13,url:"https://www.expocihac.com"},
+  // ---------- AMÉRICA DO SUL ----------
+  {n:"Agrishow",cid:"Ribeirão Preto",pais:"Brasil",cont:"América do Sul",set:"Agro & Máquinas Agrícolas",tipo:"Presencial",i:"2027-04-26",f:null,st:"prev",lat:-21.17,lng:-47.81,url:"https://www.agrishow.com.br"},
+  {n:"Fispal Tecnologia",cid:"São Paulo",pais:"Brasil",cont:"América do Sul",set:"Alimentos & Tecnologia",tipo:"Presencial",i:"2027-06-15",f:null,st:"prev",lat:-23.60,lng:-46.70,url:"https://www.fispaltecnologia.com.br"},
+  {n:"Couromoda",cid:"São Paulo",pais:"Brasil",cont:"América do Sul",set:"Calçados & Couro",tipo:"Presencial",i:"2027-01-11",f:null,st:"prev",lat:-23.55,lng:-46.63,url:"https://www.couromoda.com"},
+  {n:"Feicon",cid:"São Paulo",pais:"Brasil",cont:"América do Sul",set:"Construção & Máquinas",tipo:"Presencial",i:"2027-04-06",f:null,st:"prev",lat:-23.60,lng:-46.70,url:"https://www.feicon.com.br"},
+  {n:"Expocruz",cid:"Santa Cruz de la Sierra",pais:"Bolívia",cont:"América do Sul",set:"Multissetorial",tipo:"Presencial",i:"2026-09-18",f:"2026-09-27",st:"conf",lat:-17.78,lng:-63.18,url:"https://www.fexpocruz.com.bo"},
+  {n:"FIT América Latina — Turismo",cid:"Buenos Aires",pais:"Argentina",cont:"América do Sul",set:"Turismo & Viagens",tipo:"Presencial",i:"2026-09-26",f:"2026-09-29",st:"conf",lat:-34.58,lng:-58.42,url:"https://fit.org.ar"},
+  {n:"Expoalimentaria",cid:"Lima",pais:"Peru",cont:"América do Sul",set:"Alimentos & Bebidas",tipo:"Presencial",i:"2026-09-23",f:"2026-09-25",st:"conf",lat:-12.09,lng:-77.02,url:"https://www.expoalimentariaperu.com"},
+  // ---------- ÁFRICA ----------
+  {n:"Africa's Big 7",cid:"Joanesburgo",pais:"África do Sul",cont:"África",set:"Alimentos & Bebidas",tipo:"Presencial",i:"2027-06-01",f:null,st:"prev",lat:-26.13,lng:28.09,url:"https://www.africabig7.com"},
+  {n:"SIAM Mequinez",cid:"Mequinez",pais:"Marrocos",cont:"África",set:"Agro & Máquinas Agrícolas",tipo:"Presencial",i:"2027-04-20",f:null,st:"prev",lat:33.89,lng:-5.55,url:"https://www.salon-agriculture.ma"},
+  {n:"Cairo ICT",cid:"Cairo",pais:"Egito",cont:"África",set:"Telecom & Tecnologia",tipo:"Presencial",i:"2026-11-08",f:"2026-11-11",st:"conf",lat:30.04,lng:31.23,url:"https://cairoict.com"},
+  {n:"Feira Internacional de Comércio de Gana",cid:"Acra",pais:"Gana",cont:"África",set:"Multissetorial",tipo:"Presencial",i:"2027-03-01",f:null,st:"prev",lat:5.55,lng:-0.20,url:"https://gitfcentre.com"},
+  // ---------- OCEANIA ----------
+  {n:"Fine Food Australia",cid:"Melbourne",pais:"Austrália",cont:"Oceania",set:"Alimentos & Bebidas",tipo:"Presencial",i:"2026-08-31",f:"2026-09-03",st:"conf",lat:-37.82,lng:144.95,url:"https://finefoodaustralia.com.au"},
+  {n:"Fieldays",cid:"Hamilton",pais:"Nova Zelândia",cont:"Oceania",set:"Agro & Máquinas Agrícolas",tipo:"Presencial",i:"2027-06-16",f:null,st:"prev",lat:-37.79,lng:175.28,url:"https://www.fieldays.co.nz"}
 ];
-function renderFeiras(){
-  const sel=$('feiraSetor');
-  if(!sel.options.length){const setoresU=['todos',...new Set(feiras.map(f=>f.setor))];setoresU.forEach(s=>sel.add(new Option(s==='todos'?'Todos os setores':s,s)));}
-  const fs=sel.value||'todos', st=$('feiraStatus').value;
-  let list=feiras.filter(f=>(fs==='todos'||f.setor===fs)&&(st==='todos'||f.status===st)).sort((a,b)=>a.iso.localeCompare(b.iso));
-  $('feirasTable').innerHTML=`<thead><tr><th>Data</th><th>Evento</th><th>Local</th><th>Setor</th><th>Situação</th></tr></thead><tbody>${list.map(f=>`<tr><td><b>${f.data}</b></td><td>${f.nome}</td><td>${f.local}</td><td><span class="pill">${f.setor}</span></td><td><span class="badge ${f.status==='Confirmada'?'conf':'prev'}">${f.status}</span></td></tr>`).join('')||'<tr><td colspan=5 style="text-align:center;color:var(--ink-soft)">Nenhum evento.</td></tr>'}</tbody>`;
+
+const F_MON=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function fDate(iso){if(!iso)return '';const a=iso.split('-');return a[2]+' '+F_MON[+a[1]-1]+' '+a[0];}
+function fRange(f){ if(f.f) return fDate(f.i)+' – '+fDate(f.f); if(f.i){const a=f.i.split('-');return F_MON[+a[1]-1]+'/'+a[0]+' (a confirmar)';} return 'a confirmar'; }
+function feiraCAstore(){try{return JSON.parse(localStorage.getItem('ca_feira_ca')||'{}')}catch(e){return {}}}
+function setFeiraCA(n,v){const s=feiraCAstore();if(v)s[n]=v;else delete s[n];localStorage.setItem('ca_feira_ca',JSON.stringify(s));renderFeiras();}
+let feiraMap=null,feiraLayer=null,feiraView='list';
+function setFeiraView(v){feiraView=v;$('fvList').classList.toggle('on',v==='list');$('fvMap').classList.toggle('on',v==='map');$('feiraMapWrap').style.display=v==='map'?'block':'none';if(v==='map'){initFeiraMap();setTimeout(function(){if(feiraMap)feiraMap.invalidateSize();renderFeiras();},80);}}
+function initFeiraMap(){if(feiraMap)return;feiraMap=L.map('feiraMap',{scrollWheelZoom:false}).setView([20,5],1.4);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:18}).addTo(feiraMap);feiraLayer=L.layerGroup().addTo(feiraMap);}
+function feiraFiltered(){
+  const q=(($('feiraQ')&&$('feiraQ').value)||'').toLowerCase();
+  const se=($('feiraSetor')&&$('feiraSetor').value)||'todos';
+  const st=($('feiraStatus')&&$('feiraStatus').value)||'todos';
+  const ca=($('feiraCA')&&$('feiraCA').value)||'todos';
+  const fut=$('feiraFut')?$('feiraFut').checked:true;
+  const today=new Date().toISOString().slice(0,10);
+  const store=feiraCAstore();
+  return FDATA.filter(function(f){
+    const end=f.f||f.i;
+    if(fut&&end&&end<today) return false;
+    if(se!=='todos'&&f.set!==se) return false;
+    if(st!=='todos'&&f.st!==st) return false;
+    const cav=store[f.n]||'';
+    if(ca==='marcadas'&&!cav) return false;
+    if(ca==='pleiteando'||ca==='convidada'||ca==='confirmada'){ if(cav!==ca) return false; }
+    if(q&&(f.n+' '+f.cid+' '+f.pais+' '+f.set).toLowerCase().indexOf(q)<0) return false;
+    return true;
+  }).sort(function(a,b){return (a.i||'').localeCompare(b.i||'');});
 }
+function caBadge(v){ if(!v)return ''; var lbl=v==='pleiteando'?'Pleiteando':v==='convidada'?'Convidada':'Confirmada CA'; var st=v==='confirmada'?'background:rgba(47,125,91,.15);color:var(--ok)':v==='convidada'?'background:rgba(185,130,44,.16);color:var(--warn)':'background:rgba(90,107,122,.16);color:var(--info)'; return '<span class="badge" style="'+st+'">'+lbl+'</span>'; }
+function renderFeiras(){
+  const sel=$('feiraSetor'); if(sel&&!sel.options.length){var ss=['todos'].concat(Array.from(new Set(FDATA.map(function(f){return f.set}))).sort());ss.forEach(function(x){sel.add(new Option(x==='todos'?'Todos os setores':x,x))});}
+  const list=feiraFiltered();
+  const paises=new Set(list.map(function(f){return f.pais})).size, setores=new Set(list.map(function(f){return f.set})).size;
+  if($('feiraKpis'))$('feiraKpis').innerHTML='<div class="kpi"><div class="k-label">Eventos listados</div><div class="k-val">'+list.length+'</div><div class="k-sub">no filtro</div></div><div class="kpi"><div class="k-label">Países</div><div class="k-val">'+paises+'</div><div class="k-sub">no recorte</div></div><div class="kpi"><div class="k-label">Setores</div><div class="k-val">'+setores+'</div><div class="k-sub">no recorte</div></div>';
+  const store=feiraCAstore();
+  var body=list.map(function(f){
+    var cav=store[f.n]||''; var ncm=(FNCM[f.set]||'').replace(/"/g,'&quot;');
+    var nm=f.n.replace(/'/g,"\\'");
+    return '<tr><td><b>'+fRange(f)+'</b></td>'+
+    '<td><a href="'+f.url+'" target="_blank" rel="noopener" style="color:var(--bronze)">'+f.n+'</a><div class="muted" style="font-size:11px">'+f.tipo+'</div></td>'+
+    '<td>'+f.cid+'<div class="muted" style="font-size:11px">'+f.pais+' · '+f.cont+'</div></td>'+
+    '<td><span class="pill" title="'+ncm+'">'+f.set+'</span></td>'+
+    '<td><span class="badge '+(f.st==='conf'?'conf':'prev')+'">'+(f.st==='conf'?'Confirmada':'A confirmar')+'</span></td>'+
+    '<td>'+caBadge(cav)+'<select class="no-print" style="margin-top:4px;padding:4px 6px;font-size:11px" onchange="setFeiraCA(\''+nm+'\',this.value)"><option value="">— marcar —</option><option value="pleiteando"'+(cav==='pleiteando'?' selected':'')+'>Pleiteando</option><option value="convidada"'+(cav==='convidada'?' selected':'')+'>Convidada</option><option value="confirmada"'+(cav==='confirmada'?' selected':'')+'>Confirmada CA</option></select></td></tr>';
+  }).join('');
+  $('feirasTable').innerHTML='<thead><tr><th>Quando</th><th>Evento</th><th>Local</th><th>Setor (passe o mouse p/ NCM)</th><th>Situação</th><th>Selo CA</th></tr></thead><tbody>'+(body||'<tr><td colspan=6 style="text-align:center;color:var(--ink-soft)">Nenhum evento no filtro.</td></tr>')+'</tbody>';
+  if(feiraView==='map'&&feiraLayer){feiraLayer.clearLayers();list.forEach(function(f){if(f.lat&&f.lng){L.circleMarker([f.lat,f.lng],{radius:6,color:'#C9A84C',fillColor:store[f.n]?'#2f7d5b':'#C9A84C',fillOpacity:.85,weight:2}).addTo(feiraLayer).bindPopup('<b>'+f.n+'</b><br>'+f.cid+', '+f.pais+'<br>'+fRange(f));}});}
+}
+
+/* AGENDA DE CONTEUDO Q4 2026 */
+const QUADROS=['Mercado na Pele','20 Anos Depois','Cartografia'];
+const PILAR_REEL=['Geopolítica Aplicada','O Empresário que se Moveu','Brasil Visto de Fora'];
+const PILAR_CW=['Método & Autoridade','Território (MS / Bioceânico)','Quebra de Objeção'];
+const MESNOME={10:'Outubro',11:'Novembro',12:'Dezembro'};
+function q4Mondays(){var out=[];var d=new Date(Date.UTC(2026,9,1));while(d.getUTCDay()!==1)d.setUTCDate(d.getUTCDate()+1);while(d.getUTCFullYear()===2026&&d.getUTCMonth()>=9){out.push(new Date(d));d.setUTCDate(d.getUTCDate()+7);}return out;}
+function renderAgenda(){
+  var mes=($('agMes')&&$('agMes').value)||'todos', quf=($('agQuadro')&&$('agQuadro').value)||'todos';
+  var mons=q4Mondays(), rows='';
+  mons.forEach(function(mon,i){
+    var m=mon.getUTCMonth()+1; if(mes!=='todos'&&String(m)!==mes) return;
+    var quad=QUADROS[i%3]; if(quf!=='todos'&&quf!==quad) return;
+    var pr=PILAR_REEL[i%3], pc=PILAR_CW[i%3];
+    var dd=String(mon.getUTCDate()).padStart(2,'0'); var mn=MESNOME[m]||'';
+    var mp=quad==='Mercado na Pele';
+    rows+='<tr><td><b>'+dd+' '+mn.slice(0,3)+'</b><div class="muted" style="font-size:11px">semana '+(i+1)+'</div></td>'+
+    '<td><b>Reel</b> · '+quad+(mp?' <span class="badge prev">a gravar</span>':'')+'<div class="muted" style="font-size:11px">Pilar: '+pr+'</div></td>'+
+    '<td><b>Carrossel / Post</b><div class="muted" style="font-size:11px">Pilar: '+pc+'</div></td>'+
+    '<td class="muted" style="font-size:11px">Stories diários (relacionamento + CTA)</td></tr>';
+  });
+  $('agTable').innerHTML='<thead><tr><th>Semana</th><th>Segunda · publicação</th><th>Quarta · publicação</th><th>Diário</th></tr></thead><tbody>'+(rows||'<tr><td colspan=4 style="text-align:center;color:var(--ink-soft)">Sem itens no filtro.</td></tr>')+'</tbody>';
+}
+
+/* NCM consulta ao vivo */
+async function ncmLive(){var c=loadCFG();var out=$('ncmLiveOut');if(!c.live||!c.apiBase){out.innerHTML='<span style="color:var(--warn)">Ative "ao vivo" em Fontes de Dados primeiro.</span>';return;}out.textContent='Consultando ComexStat…';try{var r=await fetch(c.apiBase+'/comexstat?ncm='+encodeURIComponent($('ncmLive').value)+'&flow='+$('ncmFlow').value+'&year='+encodeURIComponent($('ncmYear').value));var j=await r.json();if(j.error||!j.dest||!j.dest.length){out.innerHTML='<span style="color:var(--warn)">Sem dados para esse código/ano.</span>';return;}out.innerHTML='<b>SH4 '+j.sh4+'</b> · total US$ '+(j.total/1e9).toFixed(2)+' bi · top destinos: '+j.dest.slice(0,5).map(function(d){return d.name+' (US$ '+(d.fob/1e6).toFixed(0)+'M)';}).join(' · ');}catch(e){out.innerHTML='<span style="color:var(--high)">Falha na consulta.</span>';}}
 
 /* RADAR */
 function renderRadar(){const saved=JSON.parse(localStorage.getItem('ca_radar')||'{}');let html='';for(let n=17;n>=1;n--){const id=String(n).padStart(3,'0');const url=saved[id]||'';html+=`<div class="edition"><div class="e-num">${id}</div><div style="flex:1"><h5>Radar GeoAssets · Edição ${id}</h5><div class="e-date">Publicação semanal de inteligência geopolítica</div></div>${url?`<a class="btn btn-ghost no-print" href="${url}" target="_blank" rel="noopener">Abrir PDF</a>`:`<input style="max-width:220px" placeholder="Colar URL do PDF" onchange="setRadar('${id}',this.value)">`}</div>`;}$('radarList').innerHTML=html;}
