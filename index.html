@@ -528,11 +528,12 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
   <!-- EXPORTADORES -->
   <section class="view" id="v-exportadores">
     <div class="sec-kicker">Base Nacional</div>
-    <h2 class="sec-title">Exportadores Brasileiros <span class="tag beta">Base pública</span></h2>
-    <p class="lead">Base de exportadores com CNPJ, produtos, destinos e dados logísticos enriquecidos. Útil para benchmarking, parcerias e mapeamento de concorrência.</p>
-    <div class="field" style="max-width:460px"><input id="expSearch" placeholder="Buscar por empresa, produto, UF ou destino…" oninput="renderExportadores()"></div>
+    <h2 class="sec-title">Exportadores Brasileiros <span class="tag live">MAPA ao vivo</span></h2>
+    <p class="lead">Produtores e fabricantes registrados no MAPA/SIPEAGRO (dado oficial, ao vivo) — nesta primeira camada, o setor de <b>Vinhos e Bebidas</b>. Nome, município, UF, atividade e situação cadastral. CNPJ é mascarado na origem por privacidade. Cosméticos/alimentos (ANVISA) entram numa próxima camada.</p>
+    <div class="field" style="max-width:460px"><input id="expSearch" placeholder="Buscar por empresa, município ou atividade…" oninput="expSearchDeb()"></div>
+    <div id="expInfo" class="muted" style="margin:4px 0 12px"></div>
     <div class="card" style="overflow:hidden"><table class="data" id="expTable"></table></div>
-    <div class="sources"><b>Fontes públicas</b><span class="src-chip">ComexStat (MDIC)</span><span class="src-chip">Registro de Exportadores</span><span class="src-chip">Juntas Comerciais</span></div>
+    <div class="sources"><b>Fonte oficial</b><span class="src-chip">MAPA · SIPEAGRO (estabelecimentos registrados)</span></div>
   </section>
 
   <!-- ALERTAS -->
@@ -710,6 +711,7 @@ function go(v){
   if(v==='cubagem'){ if(!cubeInit){initCube();cubeInit=true;} setTimeout(calcCube,60); }
   if(v==='rastreio'){ if(!mapInit){initMap();mapInit=true;} setTimeout(()=>{if(trackMap)trackMap.invalidateSize();maybeLiveAIS();maybeLiveAereo();},400); renderANTT(); }
   if(v==='alertas') renderAlertas();
+  if(v==='exportadores') renderExportadores();
   if(v==='fontes') renderFontes();
   if(v==='feiras') renderFeiras();
   if(v==='painel') renderPainelComex();
@@ -999,7 +1001,21 @@ const exportadores=[
  ['Nutra Suplementos SA','78.901.234/0001-56','Suplementos','SP','México, Colômbia','Viracopos (aéreo)'],
  ['Máquinas Amarelas Ltda','89.012.345/0001-67','Linha amarela','SC','Peru, Chile','Itajaí'],
 ];
-function renderExportadores(){const q=($('expSearch').value||'').toLowerCase();const rows=exportadores.filter(e=>e.join(' ').toLowerCase().includes(q));$('expTable').innerHTML=`<thead><tr><th>Empresa</th><th>CNPJ</th><th>Produtos</th><th>UF</th><th>Destinos</th><th>Porto/Aeroporto</th></tr></thead><tbody>${rows.map(e=>`<tr><td><b>${e[0]}</b></td><td>${e[1]}</td><td>${e[2]}</td><td><span class="pill">${e[3]}</span></td><td>${e[4]}</td><td>${e[5]}</td></tr>`).join('')||'<tr><td colspan=6 style="text-align:center;color:var(--ink-soft)">Nenhum resultado.</td></tr>'}</tbody>`;}
+let _expDebT=null, _expLast='';
+function expSearchDeb(){clearTimeout(_expDebT);_expDebT=setTimeout(renderExportadores,450);}
+function expFallback(){const q=($('expSearch').value||'').toLowerCase();const rows=exportadores.filter(e=>e.join(' ').toLowerCase().includes(q));$('expTable').innerHTML=`<thead><tr><th>Empresa</th><th>CNPJ</th><th>Produtos</th><th>UF</th><th>Destinos</th><th>Porto/Aeroporto</th></tr></thead><tbody>${rows.map(e=>`<tr><td><b>${e[0]}</b></td><td>${e[1]}</td><td>${e[2]}</td><td><span class="pill">${e[3]}</span></td><td>${e[4]}</td><td>${e[5]}</td></tr>`).join('')||'<tr><td colspan=6 style="text-align:center;color:var(--ink-soft)">Nenhum resultado.</td></tr>'}</tbody>`;}
+async function renderExportadores(){
+  const c=loadCFG(); const info=$('expInfo'); const q=($('expSearch').value||'').trim();
+  if(!c.apiBase){expFallback();if(info)info.textContent='';return;}
+  if(info)info.textContent='Consultando MAPA/SIPEAGRO…';
+  try{
+    const r=await fetch(c.apiBase+'/registros?fonte=vinhos&limit=250&q='+encodeURIComponent(q));
+    const j=await r.json();
+    if(j.error||!j.rows){expFallback();if(info)info.textContent='Fonte MAPA indisponível — exibindo amostra.';return;}
+    if(info)info.innerHTML='Setor <b>'+(j.setor||'')+'</b> · '+Number(j.total_ativos||0).toLocaleString('pt-BR')+' estabelecimentos ativos no MAPA'+(q?' · '+j.count+' resultado(s) para "'+q+'"':' · exibindo '+j.count);
+    $('expTable').innerHTML='<thead><tr><th>Empresa</th><th>Atividade</th><th>Classificação</th><th>Município</th><th>UF</th></tr></thead><tbody>'+(j.rows.map(e=>'<tr><td><b>'+e.razao+'</b></td><td>'+(e.atividade||'—')+'</td><td>'+(e.classificacao||'—')+'</td><td>'+(e.municipio||'—')+'</td><td><span class="pill">'+(e.uf||'—')+'</span></td></tr>').join('')||'<tr><td colspan=5 style="text-align:center;color:var(--ink-soft)">Nenhum resultado para esse termo.</td></tr>')+'</tbody>';
+  }catch(e){expFallback();if(info)info.textContent='Falha ao consultar MAPA — exibindo amostra.';}
+}
 
 /* ALERTAS */
 const alerts=[
@@ -1295,7 +1311,7 @@ async function testConn(){
 }
 
 /* INIT */
-calcImp();calcExp();calcPreco();renderInvoice();renderSaved();renderNcm();renderBuyers();renderExportadores();renderKanban();renderRadar();renderFeiras();
+calcImp();calcExp();calcPreco();renderInvoice();renderSaved();renderNcm();renderBuyers();renderKanban();renderRadar();renderFeiras();
 renderSvcConfig();renderProposta();
 (function(){const sel=$('rp_setor');setores.forEach((s,i)=>sel.add(new Option(s.k,i)));})();
 renderPainelComex();
