@@ -1,83 +1,68 @@
-// CA Hub — Proxy Aéreo (OpenSky Network / ADS-B)
-// Posições reais de aeronaves ao vivo. Análogo aéreo do AIS marítimo.
-// OAuth2 client-credentials se OPENSKY_CLIENT_ID/OPENSKY_CLIENT_SECRET estiverem no Netlify;
-// senão, acesso anônimo (limite menor). Sem essas chaves no arquivo.
-
-const TOKEN_URL = 'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token';
-const STATES_URL = 'https://opensky-network.org/api/states/all';
+// CA Hub — Proxy Aéreo (ADS-B ao vivo). Análogo aéreo do AIS marítimo.
+// Fonte: adsb.lol (comunitária, gratuita, sem chave, amigável a datacenter).
+// Fallback: airplanes.live (mesma API). OpenSky foi descartado: bloqueia IPs de datacenter.
 const UA = 'Mozilla/5.0 (compatible; CA-Hub/1.0; +https://ca-hub-internacional.netlify.app)';
-// bbox padrão: América do Sul (cobre Brasil e rotas vizinhas)
-const DEF = { lamin: -34, lomin: -74, lamax: 6, lomax: -34 };
+// pontos estratégicos cobrindo as principais regiões/hubs do Brasil (raio 250 milhas náuticas cada)
+const POINTS = [
+  [-23.43, -46.47], // São Paulo (GRU/VCP)
+  [-22.81, -43.25], // Rio de Janeiro
+  [-15.87, -47.92], // Brasília
+  [-30.00, -51.17], // Porto Alegre
+  [-8.13, -34.92],  // Recife
+  [-3.04, -60.05],  // Manaus
+  [-16.63, -49.22]  // Goiânia/Centro-Oeste
+];
+const HOSTS = ['https://api.adsb.lol', 'https://api.airplanes.live'];
 // prefixos de callsign de operadores majoritariamente de carga
-const CARGO = ['FDX','UPS','GTI','GEC','CLX','BOX','CKS','ABW','ABX','CAO','CLU','MPH','TAY','QAC','GSS','RCF','LTG','CMP','ONE','NCA','SQC','BCS','DAE','ICL','RPX'];
-
+const CARGO = ['FDX','UPS','GTI','GEC','CLX','BOX','CKS','ABW','ABX','CAO','CLU','MPH','TAY','GSS','RCF','LTG','NCA','SQC','BCS','DAE','ICL','RPX','018','TUS',' CMP'];
 const HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'public, max-age=20'
 };
-
-async function getToken() {
-  const id = process.env.OPENSKY_CLIENT_ID, secret = process.env.OPENSKY_CLIENT_SECRET;
-  if (!id || !secret) return null;
-  try {
-    const body = new URLSearchParams({ grant_type: 'client_credentials', client_id: id, client_secret: secret });
-    const r = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
-    if (!r.ok) return null;
-    const j = await r.json();
-    return j.access_token || null;
-  } catch (e) { return null; }
+function isCargo(cs) { const c = (cs || '').trim().toUpperCase(); return CARGO.some(p => c.startsWith(p.trim())); }
+async function point(host, lat, lon) {
+  const r = await fetch(`${host}/v2/point/${lat}/${lon}/250`, { headers: { 'User-Agent': UA, 'Accept': 'application/json' } });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  return j.ac || j.aircraft || [];
 }
-
-function isCargo(cs) {
-  const c = (cs || '').trim().toUpperCase();
-  return CARGO.some(p => c.startsWith(p));
-}
-
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: HEADERS, body: '' };
   const q = event.queryStringParameters || {};
-  const bb = {
-    lamin: q.lamin || DEF.lamin, lomin: q.lomin || DEF.lomin,
-    lamax: q.lamax || DEF.lamax, lomax: q.lomax || DEF.lomax
-  };
-  const url = `${STATES_URL}?lamin=${bb.lamin}&lomin=${bb.lomin}&lamax=${bb.lamax}&lomax=${bb.lomax}`;
-  try {
-    const token = await getToken();
-    const headers = { 'User-Agent': UA, 'Accept': 'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
-    const r = await fetch(url, { headers });
-    if (!r.ok) return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ error: 'HTTP ' + r.status, authed: !!token }) };
-    const j = await r.json();
-    const states = j.states || [];
-    const onlyCargo = q.cargo === '1';
-    let aircraft = states
-      .filter(a => a[5] != null && a[6] != null && a[8] === false) // tem posição e está em voo
-      .map(a => ({
-        icao: a[0],
-        callsign: (a[1] || '').trim() || a[0],
-        pais: a[2],
-        lon: a[5], lat: a[6],
-        alt_m: a[7] != null ? Math.round(a[7]) : (a[13] != null ? Math.round(a[13]) : null),
-        vel_kmh: a[9] != null ? Math.round(a[9] * 3.6) : null,
-        track: a[10] != null ? Math.round(a[10]) : null,
-        cargo: isCargo(a[1])
-      }));
-    if (onlyCargo) aircraft = aircraft.filter(a => a.cargo);
-    // ordena cargueiros primeiro, depois por velocidade
-    aircraft.sort((a, b) => (b.cargo - a.cargo) || ((b.vel_kmh || 0) - (a.vel_kmh || 0)));
-    const total = aircraft.length;
-    const cargoCount = aircraft.filter(a => a.cargo).length;
-    return {
-      statusCode: 200, headers: HEADERS,
-      body: JSON.stringify({
-        fonte: 'OpenSky Network (ADS-B)', authed: !!token,
-        time: j.time, total, cargo: cargoCount,
-        aircraft: aircraft.slice(0, 80)
-      })
-    };
-  } catch (e) {
-    return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ error: String(e.message || e) }) };
+  const onlyCargo = q.cargo === '1';
+  let lastErr = null;
+  for (const host of HOSTS) {
+    try {
+      const batches = await Promise.all(POINTS.map(p => point(host, p[0], p[1]).catch(() => [])));
+      const seen = new Set(); const all = [];
+      for (const b of batches) for (const a of b) {
+        if (!a.hex || seen.has(a.hex)) continue;
+        const lat = a.lat, lon = a.lon;
+        if (lat == null || lon == null) continue;
+        const alt = a.alt_baro;
+        if (alt === 'ground') continue;
+        seen.add(a.hex);
+        const cs = (a.flight || '').trim() || (a.r || '') || a.hex;
+        all.push({
+          callsign: cs,
+          tipo: (a.t || '').trim() || '—',
+          lat, lon,
+          alt_m: typeof alt === 'number' ? Math.round(alt * 0.3048) : null, // ft -> m
+          vel_kmh: a.gs != null ? Math.round(a.gs * 1.852) : null,          // kt -> km/h
+          track: a.track != null ? Math.round(a.track) : null,
+          cargo: isCargo(a.flight)
+        });
+      }
+      if (!all.length) { lastErr = 'sem aeronaves'; continue; }
+      let aircraft = onlyCargo ? all.filter(a => a.cargo) : all;
+      aircraft.sort((a, b) => (b.cargo - a.cargo) || ((b.vel_kmh || 0) - (a.vel_kmh || 0)));
+      return {
+        statusCode: 200, headers: HEADERS,
+        body: JSON.stringify({ fonte: host.includes('adsb.lol') ? 'adsb.lol (ADS-B)' : 'airplanes.live (ADS-B)', total: aircraft.length, cargo: aircraft.filter(a => a.cargo).length, aircraft: aircraft.slice(0, 90) })
+      };
+    } catch (e) { lastErr = String(e.message || e); }
   }
+  return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ error: lastErr || 'falha ao obter ADS-B' }) };
 };
