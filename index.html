@@ -134,12 +134,12 @@
   .alert-row h5{font-size:14px;color:var(--k-800);font-weight:600;margin-bottom:3px}
   .alert-row .a-meta{font-size:11px;color:var(--ink-soft)}
 
-  .sector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
-  .sector-chip{background:#fff;border:1px solid var(--line);border-radius:11px;padding:16px;transition:.16s}
+  .sector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+  .sector-chip{background:#fff;border:1px solid var(--line);border-radius:11px;padding:16px;transition:.16s;min-height:104px;display:flex;flex-direction:column;overflow-wrap:anywhere}
   .sector-chip:hover{border-color:var(--gold-line);transform:translateY(-2px)}
   .sector-chip .s-ico{width:34px;height:34px;border-radius:8px;background:#f2ecdd;display:grid;place-items:center;margin-bottom:10px}
   .sector-chip .s-ico svg{width:18px;height:18px;stroke:var(--gold)}
-  .sector-chip h5{font-size:13.5px;color:var(--k-800);font-weight:600}
+  .sector-chip h5{font-size:13px;color:var(--k-800);font-weight:600;line-height:1.3;overflow-wrap:anywhere;word-break:break-word}
   .sector-chip p{font-size:11px;color:var(--ink-soft);margin-top:3px}
 
   .edition{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;margin-bottom:9px;transition:.15s}
@@ -589,13 +589,23 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
   <!-- PAINEL -->
   <section class="view" id="v-painel">
     <div class="sec-kicker">Comex Stat / MDIC</div>
-    <h2 class="sec-title">Painel de Comércio por Nichos Premium <span class="tag beta">Integração</span></h2>
-    <p class="lead">Seu painel Power BI de comércio por nichos, embutido aqui. Cole a URL de publicação ("Publicar na Web" do Power BI).</p>
-    <div class="card card-pad">
-      <div class="field" style="max-width:640px"><label>URL de publicação do Power BI</label><input id="pbiUrl" placeholder="https://app.powerbi.com/view?r=..." oninput="savePbi()"></div>
-      <div id="pbiFrame"></div>
+    <h2 class="sec-title">Painel de Comércio por Nichos Premium <span class="tag live">ComexStat ao vivo</span></h2>
+    <p class="lead">Exportação (e importação) brasileira por nicho premium do CDN, direto do ComexStat (MDIC). Escolha o nicho e o ano e consulte os destinos líderes ao vivo.</p>
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="row r3" style="max-width:760px">
+        <div class="field" style="margin-bottom:0"><label>Nicho premium</label><select id="pcNicho"></select></div>
+        <div class="field" style="margin-bottom:0"><label>Fluxo</label><select id="pcFlow"><option value="export">Exportação</option><option value="import">Importação</option></select></div>
+        <div class="field" style="margin-bottom:0"><label>Ano</label><input id="pcYear" value="2024"></div>
+      </div>
+      <button class="btn btn-gold no-print" style="margin-top:12px" onclick="renderPainelComex()">Consultar ao vivo</button>
     </div>
-    <div class="note" style="margin-top:16px">O link "Publicar na Web" é público — use só para dados não sensíveis. Para dados restritos, na produção usamos embed seguro com autenticação.</div>
+    <div class="grid g3" id="pcKpis" style="margin-bottom:20px"></div>
+    <div class="grid g2">
+      <div class="card card-pad"><h4 style="font-size:15px;color:var(--k-800);margin-bottom:14px">Top destinos (US$)</h4><canvas id="pcBar" height="220"></canvas></div>
+      <div class="card card-pad"><h4 style="font-size:15px;color:var(--k-800);margin-bottom:14px">Tendência 5 anos</h4><canvas id="pcLine" height="220"></canvas></div>
+    </div>
+    <div id="pcMsg" class="note" style="margin-top:16px">Ative "ao vivo" em Fontes de Dados para consultar o ComexStat.</div>
+    <div class="sources"><b>Fonte oficial</b><span class="src-chip">ComexStat (MDIC)</span></div>
   </section>
 
   <!-- CDN -->
@@ -697,6 +707,7 @@ function go(v){
   if(v==='rastreio'){ if(!mapInit){initMap();mapInit=true;} setTimeout(()=>{if(trackMap)trackMap.invalidateSize();maybeLiveAIS();},400); }
   if(v==='fontes') renderFontes();
   if(v==='feiras') renderFeiras();
+  if(v==='painel') renderPainelComex();
   if(v==='agenda') renderAgenda();
   document.querySelector('.content').classList.toggle('wide', v==='mercosul');
 }
@@ -911,7 +922,7 @@ const shipments=[
 let trackMap, trackLayer, trackFilter='todos';
 function initMap(){
   trackMap=L.map('trackMap',{scrollWheelZoom:false}).setView([-5,-45],3);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:18}).addTo(trackMap);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:18}).addTo(trackMap);
   trackLayer=L.layerGroup().addTo(trackMap);
   renderTrack();
 }
@@ -1070,7 +1081,10 @@ const FDATA = [
   {n:"Feira Internacional de Comércio de Gana",cid:"Acra",pais:"Gana",cont:"África",set:"Multissetorial",tipo:"Presencial",i:"2027-03-01",f:null,st:"prev",lat:5.55,lng:-0.20,url:"https://gitfcentre.com"},
   // ---------- OCEANIA ----------
   {n:"Fine Food Australia",cid:"Melbourne",pais:"Austrália",cont:"Oceania",set:"Alimentos & Bebidas",tipo:"Presencial",i:"2026-08-31",f:"2026-09-03",st:"conf",lat:-37.82,lng:144.95,url:"https://finefoodaustralia.com.au"},
-  {n:"Fieldays",cid:"Hamilton",pais:"Nova Zelândia",cont:"Oceania",set:"Agro & Máquinas Agrícolas",tipo:"Presencial",i:"2027-06-16",f:null,st:"prev",lat:-37.79,lng:175.28,url:"https://www.fieldays.co.nz"}
+  {n:"Fieldays",cid:"Hamilton",pais:"Nova Zelândia",cont:"Oceania",set:"Agro & Máquinas Agrícolas",tipo:"Presencial",i:"2027-06-16",f:null,st:"prev",lat:-37.79,lng:175.28,url:"https://www.fieldays.co.nz"},
+  {n:"Expo Paraguay Brasil",cid:"Hernandarias",pais:"Paraguai",cont:"América do Sul",set:"Multissetorial",tipo:"Presencial",i:"2026-11-11",f:"2026-11-13",st:"conf",lat:-25.38,lng:-54.64,url:"https://expoparaguaybrasil.com",ca:"convidada"},
+  {n:"Beautyworld Saudi Arabia",cid:"Riad",pais:"Arábia Saudita",cont:"Oriente Médio",set:"Cosméticos & Beleza",tipo:"Presencial",i:"2027-06-21",f:"2027-06-23",st:"conf",lat:24.77,lng:46.74,url:"https://www.beautyworldksa.com",ca:"convidada"},
+  {n:"Café com Negócios — Polo Cosmético Diadema",cid:"Diadema",pais:"Brasil",cont:"América do Sul",set:"Cosméticos & Beleza",tipo:"Presencial",i:null,f:null,st:"prev",lat:-23.686,lng:-46.623,url:"",ca:"convidada"}
 ];
 
 const F_MON=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -1080,7 +1094,7 @@ function feiraCAstore(){try{return JSON.parse(localStorage.getItem('ca_feira_ca'
 function setFeiraCA(n,v){const s=feiraCAstore();if(v)s[n]=v;else delete s[n];localStorage.setItem('ca_feira_ca',JSON.stringify(s));renderFeiras();}
 let feiraMap=null,feiraLayer=null,feiraView='list';
 function setFeiraView(v){feiraView=v;$('fvList').classList.toggle('on',v==='list');$('fvMap').classList.toggle('on',v==='map');$('feiraMapWrap').style.display=v==='map'?'block':'none';if(v==='map'){initFeiraMap();setTimeout(function(){if(feiraMap)feiraMap.invalidateSize();renderFeiras();},80);}}
-function initFeiraMap(){if(feiraMap)return;feiraMap=L.map('feiraMap',{scrollWheelZoom:false}).setView([20,5],1.4);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:18}).addTo(feiraMap);feiraLayer=L.layerGroup().addTo(feiraMap);}
+function initFeiraMap(){if(feiraMap)return;feiraMap=L.map('feiraMap',{scrollWheelZoom:false}).setView([20,5],1.4);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(feiraMap);feiraLayer=L.layerGroup().addTo(feiraMap);}
 function feiraFiltered(){
   const q=(($('feiraQ')&&$('feiraQ').value)||'').toLowerCase();
   const se=($('feiraSetor')&&$('feiraSetor').value)||'todos';
@@ -1094,7 +1108,7 @@ function feiraFiltered(){
     if(fut&&end&&end<today) return false;
     if(se!=='todos'&&f.set!==se) return false;
     if(st!=='todos'&&f.st!==st) return false;
-    const cav=store[f.n]||'';
+    const cav=store[f.n]||f.ca||'';
     if(ca==='marcadas'&&!cav) return false;
     if(ca==='pleiteando'||ca==='convidada'||ca==='confirmada'){ if(cav!==ca) return false; }
     if(q&&(f.n+' '+f.cid+' '+f.pais+' '+f.set).toLowerCase().indexOf(q)<0) return false;
@@ -1109,17 +1123,17 @@ function renderFeiras(){
   if($('feiraKpis'))$('feiraKpis').innerHTML='<div class="kpi"><div class="k-label">Eventos listados</div><div class="k-val">'+list.length+'</div><div class="k-sub">no filtro</div></div><div class="kpi"><div class="k-label">Países</div><div class="k-val">'+paises+'</div><div class="k-sub">no recorte</div></div><div class="kpi"><div class="k-label">Setores</div><div class="k-val">'+setores+'</div><div class="k-sub">no recorte</div></div>';
   const store=feiraCAstore();
   var body=list.map(function(f){
-    var cav=store[f.n]||''; var ncm=(FNCM[f.set]||'').replace(/"/g,'&quot;');
+    var cav=store[f.n]||f.ca||''; var ncm=(FNCM[f.set]||'').replace(/"/g,'&quot;');
     var nm=f.n.replace(/'/g,"\\'");
     return '<tr><td><b>'+fRange(f)+'</b></td>'+
-    '<td><a href="'+f.url+'" target="_blank" rel="noopener" style="color:var(--bronze)">'+f.n+'</a><div class="muted" style="font-size:11px">'+f.tipo+'</div></td>'+
+    '<td>'+(f.url?'<a href="'+f.url+'" target="_blank" rel="noopener" style="color:var(--bronze)">'+f.n+'</a>':'<b>'+f.n+'</b>')+'<div class="muted" style="font-size:11px">'+f.tipo+'</div></td>'+
     '<td>'+f.cid+'<div class="muted" style="font-size:11px">'+f.pais+' · '+f.cont+'</div></td>'+
     '<td><span class="pill" title="'+ncm+'">'+f.set+'</span></td>'+
     '<td><span class="badge '+(f.st==='conf'?'conf':'prev')+'">'+(f.st==='conf'?'Confirmada':'A confirmar')+'</span></td>'+
     '<td>'+caBadge(cav)+'<select class="no-print" style="margin-top:4px;padding:4px 6px;font-size:11px" onchange="setFeiraCA(\''+nm+'\',this.value)"><option value="">— marcar —</option><option value="pleiteando"'+(cav==='pleiteando'?' selected':'')+'>Pleiteando</option><option value="convidada"'+(cav==='convidada'?' selected':'')+'>Convidada</option><option value="confirmada"'+(cav==='confirmada'?' selected':'')+'>Confirmada CA</option></select></td></tr>';
   }).join('');
   $('feirasTable').innerHTML='<thead><tr><th>Quando</th><th>Evento</th><th>Local</th><th>Setor (passe o mouse p/ NCM)</th><th>Situação</th><th>Selo CA</th></tr></thead><tbody>'+(body||'<tr><td colspan=6 style="text-align:center;color:var(--ink-soft)">Nenhum evento no filtro.</td></tr>')+'</tbody>';
-  if(feiraView==='map'&&feiraLayer){feiraLayer.clearLayers();list.forEach(function(f){if(f.lat&&f.lng){L.circleMarker([f.lat,f.lng],{radius:6,color:'#C9A84C',fillColor:store[f.n]?'#2f7d5b':'#C9A84C',fillOpacity:.85,weight:2}).addTo(feiraLayer).bindPopup('<b>'+f.n+'</b><br>'+f.cid+', '+f.pais+'<br>'+fRange(f));}});}
+  if(feiraView==='map'&&feiraLayer){feiraLayer.clearLayers();list.forEach(function(f){if(f.lat&&f.lng){L.circleMarker([f.lat,f.lng],{radius:6,color:'#C9A84C',fillColor:(store[f.n]||f.ca)?'#2f7d5b':'#C9A84C',fillOpacity:.85,weight:2}).addTo(feiraLayer).bindPopup('<b>'+f.n+'</b><br>'+f.cid+', '+f.pais+'<br>'+fRange(f));}});}
 }
 
 /* AGENDA DE CONTEUDO Q4 2026 */
@@ -1153,7 +1167,26 @@ function renderRadar(){const saved=JSON.parse(localStorage.getItem('ca_radar')||
 function setRadar(id,url){const s=JSON.parse(localStorage.getItem('ca_radar')||'{}');s[id]=url;localStorage.setItem('ca_radar',JSON.stringify(s));renderRadar();}
 
 /* PBI */
-function savePbi(){const url=$('pbiUrl').value.trim();localStorage.setItem('ca_pbi',url);$('pbiFrame').innerHTML=url?`<div style="margin-top:16px;border-radius:12px;overflow:hidden;border:1px solid var(--line)"><iframe src="${url}" style="width:100%;height:540px;border:0" allowfullscreen></iframe></div>`:`<div class="embed-box" style="margin-top:16px"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/></svg><div class="muted">Cole a URL de publicação do Power BI acima para exibir o painel aqui.</div></div>`;}
+function savePbi(){}
+const PC_NICHOS=[['Café','0901'],['Joias e semijoias','7113'],['Dermocosméticos/beleza','3304'],['Suplementos/nutracosméticos','2106'],['Farmácia e distribuidoras','3004'],['Vinhos e whiskey','2204'],['Móveis/decoração/design','9403'],['Vestuário feminino','6204'],['Vestuário masculino','6203'],['Maquinário linha amarela','8429'],['Leite e derivados','0402'],['Agronegócio (soja)','1201'],['Pet shop','2309']];
+let pcBar=null,pcLine=null;
+async function renderPainelComex(){
+  var sel=$('pcNicho'); if(sel&&!sel.options.length){PC_NICHOS.forEach(function(n,i){sel.add(new Option(n[0],i))});}
+  var c=loadCFG(); var msg=$('pcMsg'); if(!sel){return;}
+  if(!c.live||!c.apiBase){msg.innerHTML='<span style="color:var(--warn)">Ative "ao vivo" em Fontes de Dados para consultar o ComexStat.</span>';return;}
+  var nic=PC_NICHOS[sel.value||0]; msg.textContent='Consultando ComexStat para '+nic[0]+'…';
+  try{
+    var r=await fetch(c.apiBase+'/comexstat?ncm='+nic[1]+'&flow='+$('pcFlow').value+'&year='+encodeURIComponent($('pcYear').value));
+    var j=await r.json();
+    if(j.error||!j.dest||!j.dest.length){msg.innerHTML='<span style="color:var(--warn)">Sem dados para '+nic[0]+' nesse ano.</span>';return;}
+    msg.innerHTML='<b>'+nic[0]+'</b> (SH4 '+nic[1]+') · '+$('pcFlow').value+' '+$('pcYear').value+' · ComexStat ao vivo';
+    $('pcKpis').innerHTML='<div class="kpi"><div class="k-label">Total</div><div class="k-val">US$ '+(j.total/1e9).toFixed(2)+' bi</div><div class="k-sub">ano '+$('pcYear').value+'</div></div><div class="kpi"><div class="k-label">Destinos</div><div class="k-val">'+j.dest.length+'+</div><div class="k-sub">com fluxo</div></div><div class="kpi"><div class="k-label">Líder</div><div class="k-val" style="font-size:20px">'+j.dest[0].name+'</div><div class="k-sub">US$ '+(j.dest[0].fob/1e6).toFixed(0)+'M</div></div>';
+    var gold='#C9A84C',navy='#242422';
+    if(pcBar)pcBar.destroy(); if(pcLine)pcLine.destroy();
+    pcBar=new Chart($('pcBar'),{type:'bar',data:{labels:j.dest.map(function(d){return d.name}),datasets:[{data:j.dest.map(function(d){return +(d.fob/1e9).toFixed(2)}),backgroundColor:navy,borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:function(v){return 'US$ '+v+'B'}}}}}});
+    if(j.trend&&j.trend.length){pcLine=new Chart($('pcLine'),{type:'line',data:{labels:j.trend.map(function(t){return t.year}),datasets:[{data:j.trend.map(function(t){return +(t.fob/1e9).toFixed(2)}),borderColor:gold,backgroundColor:'rgba(201,168,76,.12)',fill:true,tension:.35,pointBackgroundColor:navy}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:function(v){return 'US$ '+v+'B'}}}}}});}
+  }catch(e){msg.innerHTML='<span style="color:var(--high)">Falha na consulta ao ComexStat.</span>';}
+}
 
 /* DRIVE */
 function saveDrive(){const u=$('driveFolder').value.trim();localStorage.setItem('ca_drive',u);$('driveLink').innerHTML=u?`<a class="btn btn-ghost" href="${u}" target="_blank" rel="noopener" style="margin-top:6px">Abrir pasta de trabalho</a>`:'';}
@@ -1203,7 +1236,7 @@ async function testConn(){
 calcImp();calcExp();calcPreco();renderInvoice();renderSaved();renderNcm();renderBuyers();renderExportadores();renderKanban();renderRadar();renderFeiras();
 renderSvcConfig();renderProposta();
 (function(){const sel=$('rp_setor');setores.forEach((s,i)=>sel.add(new Option(s.k,i)));})();
-$('pbiUrl').value=localStorage.getItem('ca_pbi')||'';savePbi();
+renderPainelComex();
 $('driveFolder').value=localStorage.getItem('ca_drive')||'';saveDrive();
 setLiveBadge();fetchFX();
 </script>
