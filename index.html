@@ -462,8 +462,8 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
   <!-- RASTREAMENTO GLOBAL -->
   <section class="view" id="v-rastreio">
     <div class="sec-kicker">Logística em tempo real</div>
-    <h2 class="sec-title">Rastreamento Global <span class="tag live">Marítimo AIS + ANTT ao vivo</span></h2>
-    <p class="lead">Marítimo em posição real (AIS); ferroviário e rodoviário internacional com indicadores oficiais da ANTT ao vivo. Nota: ANTT publica <b>produção e registro</b> (toneladas transportadas, empresas habilitadas), não posição GPS de trens/caminhões — isso não existe como dado público.</p>
+    <h2 class="sec-title">Rastreamento Global <span class="tag live">AIS + ADS-B + ANTT ao vivo</span></h2>
+    <p class="lead">Marítimo (AIS) e aéreo (ADS-B/OpenSky) em posição real; ferroviário e rodoviário internacional com indicadores oficiais da ANTT ao vivo. No aéreo, cargueiros são destacados por prefixo de callsign. Nota: ANTT publica <b>produção e registro</b> (toneladas transportadas, empresas habilitadas), não posição GPS de trens/caminhões — isso não existe como dado público.</p>
     <div class="toggle no-print" id="trackModes">
       <button class="on" data-m="todos" onclick="setTrack('todos')">Todos</button>
       <button data-m="Marítimo" onclick="setTrack('Marítimo')">Marítimo</button>
@@ -475,7 +475,7 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
     <div id="trackMap" class="no-print"></div>
     <div class="card" style="overflow:hidden;margin-top:18px"><table class="data" id="trackTable"></table></div>
     <div id="anttLive" style="margin-top:22px"></div>
-    <div class="sources"><b>Fontes oficiais</b><span class="src-chip">AISStream.io (marítimo)</span><span class="src-chip">ANTT · SIADE (ferroviário)</span><span class="src-chip">ANTT · TRIC (rodoviário internacional)</span></div>
+    <div class="sources"><b>Fontes oficiais</b><span class="src-chip">AISStream.io (marítimo)</span><span class="src-chip">OpenSky Network · ADS-B (aéreo)</span><span class="src-chip">ANTT · SIADE (ferroviário)</span><span class="src-chip">ANTT · TRIC (rodoviário internacional)</span></div>
   </section>
 
   <!-- MERCADO -->
@@ -708,7 +708,7 @@ function go(v){
   if(window.innerWidth<=900) toggleMenu(true);
   if(v==='mercado'){ renderMercado(); maybeLiveMercado(); }
   if(v==='cubagem'){ if(!cubeInit){initCube();cubeInit=true;} setTimeout(calcCube,60); }
-  if(v==='rastreio'){ if(!mapInit){initMap();mapInit=true;} setTimeout(()=>{if(trackMap)trackMap.invalidateSize();maybeLiveAIS();},400); renderANTT(); }
+  if(v==='rastreio'){ if(!mapInit){initMap();mapInit=true;} setTimeout(()=>{if(trackMap)trackMap.invalidateSize();maybeLiveAIS();maybeLiveAereo();},400); renderANTT(); }
   if(v==='alertas') renderAlertas();
   if(v==='fontes') renderFontes();
   if(v==='feiras') renderFeiras();
@@ -935,7 +935,7 @@ function initMap(){
   trackLayer=L.layerGroup().addTo(trackMap);
   renderTrack();
 }
-function setTrack(m){trackFilter=m;document.querySelectorAll('#trackModes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));renderTrack();maybeLiveAIS();}
+function setTrack(m){trackFilter=m;document.querySelectorAll('#trackModes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));renderTrack();maybeLiveAIS();maybeLiveAereo();}
 function renderTrack(){
   const list=shipments.filter(s=>trackFilter==='todos'||s.modo===trackFilter);
   if(trackLayer){trackLayer.clearLayers();list.forEach(s=>{L.circleMarker(s.ll,{radius:7,color:'#C9A84C',fillColor:'#C9A84C',fillOpacity:.85,weight:2}).addTo(trackLayer).bindPopup(`<b>${s.nome}</b><br>${s.rota}<br>ETA: ${s.eta} · ${s.status}`);});}
@@ -1273,6 +1273,18 @@ async function maybeLiveAIS(){
     const r=await fetch(c.apiBase+'/ais');const j=await r.json();if(!j.vessels||!j.vessels.length)return;
     if(trackLayer){trackLayer.clearLayers();j.vessels.forEach(v=>{if(v.lat&&v.lon)L.circleMarker([v.lat,v.lon],{radius:6,color:'#C9A84C',fillColor:'#C9A84C',fillOpacity:.85,weight:2}).addTo(trackLayer).bindPopup('<b>'+(v.name||v.mmsi)+'</b><br>MMSI '+v.mmsi+(v.sog!=null?'<br>'+v.sog+' nós':''));});}
     $('trackTable').innerHTML='<thead><tr><th>Modal</th><th>Embarcação (AIS)</th><th>Posição</th><th>Velocidade</th></tr></thead><tbody>'+j.vessels.slice(0,40).map(v=>'<tr><td><span class="pill">Marítimo</span></td><td><b>'+(v.name||v.mmsi)+'</b></td><td>'+Number(v.lat).toFixed(2)+', '+Number(v.lon).toFixed(2)+'</td><td>'+(v.sog!=null?v.sog+' nós':'—')+'</td></tr>').join('')+'</tbody>';
+  }catch(e){}
+}
+async function maybeLiveAereo(){
+  const c=loadCFG();if(!c.live||!c.apiBase)return;if(trackFilter!=='todos'&&trackFilter!=='Aéreo')return;
+  try{
+    const r=await fetch(c.apiBase+'/aereo');const j=await r.json();if(!j.aircraft||!j.aircraft.length)return;
+    const col='#B9822C';
+    if(trackFilter==='Aéreo'&&trackLayer)trackLayer.clearLayers();
+    if(trackLayer)j.aircraft.forEach(a=>{if(a.lat!=null&&a.lon!=null)L.circleMarker([a.lat,a.lon],{radius:5,color:col,fillColor:a.cargo?col:'#D8C690',fillOpacity:.85,weight:2}).addTo(trackLayer).bindPopup('<b>'+a.callsign+'</b>'+(a.cargo?' · Carga':'')+'<br>'+(a.tipo||'')+(a.alt_m!=null?' · '+(a.alt_m/1000).toFixed(1)+' km':'')+(a.vel_kmh!=null?' · '+a.vel_kmh+' km/h':''));});
+    if(trackFilter==='Aéreo'){
+      $('trackTable').innerHTML='<thead><tr><th>Modal</th><th>Voo (ADS-B)</th><th>Tipo</th><th>Posição</th><th>Altitude</th><th>Velocidade</th></tr></thead><tbody>'+j.aircraft.slice(0,40).map(a=>'<tr><td><span class="pill">Aéreo</span>'+(a.cargo?' <span class="pill" style="background:rgba(185,130,44,.18);color:var(--warn)">Carga</span>':'')+'</td><td><b>'+a.callsign+'</b></td><td>'+(a.tipo||'—')+'</td><td>'+Number(a.lat).toFixed(2)+', '+Number(a.lon).toFixed(2)+'</td><td>'+(a.alt_m!=null?(a.alt_m/1000).toFixed(1)+' km':'—')+'</td><td>'+(a.vel_kmh!=null?a.vel_kmh+' km/h':'—')+'</td></tr>').join('')+'</tbody>';
+    }
   }catch(e){}
 }
 async function testConn(){
