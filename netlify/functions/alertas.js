@@ -33,15 +33,19 @@ exports.handler = async (event) => {
       all = all.concat(parseFeed(xml, f.fonte));
     } catch (e) { /* ignora feed com falha */ }
   }));
-  // filtra ruído (títulos muito curtos) e itens sem data; ordena por data desc
+  // filtra ruído: pastas/coleções, imagens, títulos genéricos e itens antigos
+  const CUT = Date.now() - 400 * 864e5; // ~13 meses
+  const noiseTitle = /per[ií]odo eleitoral|todas as not[ií]cias|^not[ií]cias d|últimas? not[ií]cias|^foz do igua/i;
+  const noiseLink = /\/(todas-as-noticias|ultimas-noticias)(-[^/]*)?$|\/view$|\.(png|jpe?g|gif|pdf)(\/view)?$/i;
   const seen = new Set();
   const items = all
-    .filter(i => i.title && i.title.length >= 12 && i.date)
-    .filter(i => { const k = i.title.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+    .filter(i => i.title && i.title.length >= 15 && i.date && i.link)
+    .filter(i => !noiseTitle.test(i.title) && !noiseLink.test(i.link))
     .map(i => ({ ...i, ts: Date.parse(i.date) || 0 }))
-    .filter(i => i.ts > 0)
+    .filter(i => i.ts >= CUT)
+    .filter(i => { const k = i.title.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
     .sort((a, b) => b.ts - a.ts)
-    .slice(0, 16)
+    .slice(0, 14)
     .map(i => ({ title: i.title, link: i.link, date: i.date, fonte: i.fonte }));
   return {
     statusCode: 200, headers: HEADERS,
