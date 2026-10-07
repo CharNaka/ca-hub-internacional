@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Painel Mercosul-EFTA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Montserrat:wght@200;300;400;500&display=swap">
+<style>
+/* Layout: cabeçalho preto CA, faixa de vigência por país, matriz de oportunidades filtrável, trilha de habilitação e fontes oficiais */
+:root{
+  --bg:#F5F0E8; --surface:#FBF8F2; --ink:#141414; --muted:#5F574C; --line:#DCCFB6;
+  --gold:#C9A84C; --gold-d:#8A6B28; --tabaco:#5A3D24; --ebano:#3F2A14; --on-dark:#F5F0E8;
+  --ok:#3E6B3F; --warn:#9A6A12; --wait:#6E6458;
+  --serif:"Cormorant Garamond",Garamond,"Times New Roman",serif;
+  --sans:"Montserrat","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141414; --surface:#1D1A16; --ink:#F5F0E8; --muted:#BFB4A2; --line:#3A3227;
+  --gold:#C9A84C; --gold-d:#E2C97A; --tabaco:#7C5C3E; --ebano:#2C1D0A; --on-dark:#F5F0E8;
+  --ok:#8FBF8A; --warn:#E2C97A; --wait:#A89D8C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141414; --surface:#1D1A16; --ink:#F5F0E8; --muted:#BFB4A2; --line:#3A3227;
+  --gold:#C9A84C; --gold-d:#E2C97A; --tabaco:#7C5C3E; --ebano:#2C1D0A; --on-dark:#F5F0E8;
+  --ok:#8FBF8A; --warn:#E2C97A; --wait:#A89D8C; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:14px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 56px}
+h1,h2,h3{font-family:var(--serif);font-weight:300;text-wrap:balance;margin:0}
+.lbl{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-d);font-weight:400}
+p{text-align:justify;margin:0}
+a{color:var(--gold-d)}
+header.top{background:#141414;color:#F5F0E8;border-bottom:1px solid #C9A84C}
+header.top .wrap{padding-block:28px 30px;display:grid;gap:18px}
+.brand{display:flex;gap:10px;align-items:baseline;font-size:11px;letter-spacing:.28em;text-transform:uppercase}
+.brand b{font-family:var(--serif);font-size:26px;letter-spacing:.05em;color:#C9A84C;font-weight:400}
+header h1{font-size:clamp(32px,5vw,52px);line-height:1.05}
+header h1 em{color:#C9A84C;font-style:italic}
+header p{color:#D9CFBF;max-width:72ch}
+.stamp{font-size:11px;color:#BFB4A2;letter-spacing:.08em}
+section{margin-top:44px;display:grid;gap:18px}
+.sec-h{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--gold);padding-bottom:10px}
+.sec-h h2{font-size:30px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:-20px;position:relative}
+.kpi{background:var(--surface);padding:18px 18px 16px;display:grid;gap:4px}
+.kpi .n{font-family:var(--serif);font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .d{font-size:12px;color:var(--muted)}
+.paises{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.pais{background:var(--surface);border:1px solid var(--line);padding:18px;display:grid;gap:10px;align-content:start}
+.pais h3{font-size:24px}
+.pill{justify-self:start;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border:1px solid currentColor;font-weight:500}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.wait{color:var(--wait)}
+.pais .dt{font-family:var(--serif);font-size:20px;font-variant-numeric:tabular-nums}
+.pais p{font-size:13px;color:var(--muted)}
+.filtros{display:flex;flex-wrap:wrap;gap:8px}
+.filtros button{font:inherit;font-size:12px;letter-spacing:.06em;background:transparent;color:var(--ink);border:1px solid var(--line);padding:7px 14px;cursor:pointer}
+.filtros button[aria-pressed="true"]{background:var(--tabaco);border-color:var(--tabaco);color:#F5F0E8}
+.filtros button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.busca{display:flex;gap:10px;flex-wrap:wrap}
+.busca input{flex:1 1 240px;font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);padding:9px 12px}
+.tbl{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;text-align:left;color:var(--gold-d);font-weight:500;padding:12px 14px;border-bottom:1px solid var(--gold)}
+td{padding:14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+td.nome{font-family:var(--serif);font-size:18px;line-height:1.2}
+td.nome small{display:block;font-family:var(--sans);font-size:11px;color:var(--muted);margin-top:4px}
+.sel{display:inline-block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;font-weight:500}
+.sel.a{background:var(--tabaco);color:#F5F0E8} .sel.b{border:1px solid var(--gold);color:var(--gold-d)} .sel.c{border:1px solid var(--line);color:var(--muted)}
+.score{display:flex;gap:3px} .score i{width:14px;height:6px;background:var(--line)} .score i.on{background:var(--gold)}
+.dois{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.bloco{background:#141414;color:#F5F0E8;padding:24px;display:grid;gap:14px;border-top:2px solid #C9A84C}
+.bloco h3{font-size:24px;color:#F5F0E8}
+.bloco ol{margin:0;padding-left:20px;display:grid;gap:10px;color:#D9CFBF}
+.bloco li::marker{color:#C9A84C;font-family:var(--serif)}
+.bloco.tb{background:#3F2A14}
+.chk{display:grid;gap:8px}
+.chk label{display:flex;gap:10px;align-items:flex-start;color:#D9CFBF;cursor:pointer}
+.chk input{accent-color:#C9A84C;margin-top:4px}
+.fontes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.fonte{border:1px solid var(--line);background:var(--surface);padding:14px 16px;text-decoration:none;color:var(--ink);display:grid;gap:4px}
+.fonte:hover{border-color:var(--gold)}
+.fonte b{font-family:var(--serif);font-weight:400;font-size:18px}
+.fonte span{font-size:11.5px;color:var(--muted)}
+.nota{font-size:12px;color:var(--muted);border-left:2px solid var(--gold);padding-left:12px}
+footer{margin-top:48px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:no-preference){.fonte,.filtros button{transition:all .2s}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <div class="brand"><b>CA</b> Consultoria Internacional · CA Hub</div>
+  <div class="lbl" style="color:#C9A84C">Inteligência de acordos comerciais</div>
+  <h1>Mercosul <em>×</em> EFTA</h1>
+  <p>Suíça, Noruega, Islândia e Liechtenstein: cerca de 15 milhões de consumidores com algumas das maiores rendas per capita do planeta. Indústria e pescado entram com tarifa zero desde a vigência; agro abre por cronograma, cota ou regime específico. Este painel cruza o que o MDIC publicou com os nichos premium em que a CA atua.</p>
+  <div class="stamp">Base: Decreto nº 13.126/2026 · MDIC/SECEX e Portal Siscomex · atualizado em 06/10/2026</div>
+</div></header>
+
+<main class="wrap">
+  <div class="kpis">
+    <div class="kpi"><span class="lbl">Mercado</span><span class="n">~15 mi</span><span class="d">pessoas no bloco EFTA</span></div>
+    <div class="kpi"><span class="lbl">PIB</span><span class="n">US$ 1,4 tri</span><span class="d">aprox., renda per capita entre as maiores do mundo</span></div>
+    <div class="kpi"><span class="lbl">Concentração</span><span class="n">94%</span><span class="d">das exportações BR ao bloco vão para Suíça e Noruega</span></div>
+    <div class="kpi"><span class="lbl">IGs brasileiras</span><span class="n">63</span><span class="d">protegidas na Suíça e em Liechtenstein</span></div>
+    <div class="kpi"><span class="lbl">Industriais</span><span class="n">0%</span><span class="d">tarifa EFTA imediata para industriais e pesqueiros</span></div>
+  </div>
+
+  <section>
+    <div class="sec-h"><h2>Vigência por país</h2><span class="lbl">Entrada em vigor bilateral</span></div>
+    <div class="paises">
+      <div class="pais"><span class="pill ok">Em vigor</span><h3>Islândia</h3><span class="dt">01/10/2026</span><p>Primeiro mercado aberto. Volume pequeno, mas útil como teste de rota, documentação de origem e precificação.</p></div>
+      <div class="pais"><span class="pill warn">Agendado</span><h3>Noruega</h3><span class="dt">01/11/2026</span><p>Segundo maior parceiro. Janela de 26 dias para preparar prova de origem de embarques de novembro.</p></div>
+      <div class="pais"><span class="pill wait">Aguardando</span><h3>Suíça</h3><span class="dt">Internalização pendente</span><p>Maior parceiro e núcleo da oportunidade premium. Preferências só valem após ratificação suíça.</p></div>
+      <div class="pais"><span class="pill wait">Aguardando</span><h3>Liechtenstein</h3><span class="dt">Internalização pendente</span><p>Opera em união aduaneira com a Suíça; tende a acompanhar o calendário suíço.</p></div>
+    </div>
+    <p class="nota">Leitura CA: a oportunidade comercial real depende da Suíça. Islândia e Noruega servem para montar processo e histórico agora, de modo que o cliente chegue pronto quando Berna ratificar.</p>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Matriz de oportunidades</h2><span class="lbl">Nichos priorizados pela CA</span></div>
+    <div class="filtros" role="group" aria-label="Filtrar por linha">
+      <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+      <button type="button" data-f="premium" aria-pressed="false">Consumo premium</button>
+      <button type="button" data-f="agro" aria-pressed="false">Agro de valor</button>
+      <button type="button" data-f="industria" aria-pressed="false">Indústria</button>
+      <button type="button" data-f="ig" aria-pressed="false">Com IG</button>
+    </div>
+    <div class="busca"><input id="q" type="search" placeholder="Buscar produto, NCM ou mercado" aria-label="Buscar"></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Produto / setor</th><th>Tratamento no acordo</th><th>Mercado-alvo</th><th>Atratividade</th><th>Prioridade CA</th><th>Próximo passo</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+    <p class="nota">Tarifas citadas são as divulgadas pelo MDIC. Para os demais itens, confirmar NCM a NCM no Painel de Dados (ComexStat) e no Manual de Desgravação antes de qualquer proposta ao cliente. A nota de atratividade é critério interno da CA.</p>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Trilha de habilitação</h2><span class="lbl">Do produto ao embarque preferencial</span></div>
+    <div class="dois">
+      <div class="bloco">
+        <span class="lbl" style="color:#C9A84C">Sequência</span>
+        <h3>Como o cliente acessa a preferência</h3>
+        <ol>
+          <li>Classificar o produto (NCM) e localizar o tratamento no Manual de Desgravação.</li>
+          <li>Testar a regra de origem específica do capítulo e calcular conteúdo não originário.</li>
+          <li>Emitir prova de origem conforme o acordo e organizar documentação de suporte.</li>
+          <li>Validar exigências não tarifárias do mercado (sanitárias, rotulagem, cosméticos, químicos).</li>
+          <li>Reprecificar com a tarifa preferencial e abordar importadores e distribuidores.</li>
+        </ol>
+      </div>
+      <div class="bloco tb">
+        <span class="lbl" style="color:#C9A84C">Checklist do cliente</span>
+        <h3>Prontidão Mercosul-EFTA</h3>
+        <div class="chk" id="chk"></div>
+        <span class="stamp" id="chkp" style="color:#E2C97A"></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Fontes oficiais</h2><span class="lbl">Consulta direta</span></div>
+    <div class="fontes">
+      <a class="fonte" href="https://comexstat.mdic.gov.br/pt/comex-vis/9/5" target="_blank" rel="noopener"><b>Painel de Dados MDIC</b><span>Tarifas por produto, comércio por UF e compromissos</span></a>
+      <a class="fonte" href="https://www.gov.br/siscomex/pt-br/acordos-comerciais/mercosul-efta" target="_blank" rel="noopener"><b>Siscomex · Mercosul-EFTA</b><span>Página oficial com textos e anexos</span></a>
+      <a class="fonte" href="https://www.gov.br/siscomex/pt-br/acordos-comerciais/arquivos/2026/acordo-mercosul-efta/manuais/2907_efta_desgravacao-tarifaria_v5-1.pdf" target="_blank" rel="noopener"><b>Manual de Desgravação</b><span>Cronogramas e cotas por produto</span></a>
+      <a class="fonte" href="https://www.gov.br/siscomex/pt-br/acordos-comerciais/arquivos/2026/acordo-mercosul-efta/manuais/1808_efta_manual-regras-de-origem_v3.pdf" target="_blank" rel="noopener"><b>Manual de Regras de Origem</b><span>Critérios e prova de origem</span></a>
+      <a class="fonte" href="https://www.gov.br/siscomex/pt-br/acordos-comerciais/arquivos/2026/acordo-mercosul-efta/manuais/efta_manual-de-igs_v3-1.pdf" target="_blank" rel="noopener"><b>Manual de IGs</b><span>63 indicações geográficas protegidas</span></a>
+      <a class="fonte" href="https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/d13126.htm" target="_blank" rel="noopener"><b>Decreto nº 13.126/2026</b><span>Internalização no Brasil</span></a>
+    </div>
+  </section>
+
+  <footer><span>CA Consultoria Internacional · Campo Grande-MS</span><span>Estratégia onde o mundo decide.</span></footer>
+</main>
+
+<script>
+const D=[
+ {n:"Cosméticos e higiene premium",ncm:"Cap. 33",t:"Industrial: tarifa zero imediata",m:"Suíça · Noruega",s:5,p:"a",f:["premium","industria"],x:"Mapear exigências regulatórias suíças e distribuidores de dermocosméticos"},
+ {n:"Café torrado e especial",ncm:"0901",t:"Hoje 10% (IS) e 7% (CH/LI); redução imediata na maior parte das NCMs",m:"Suíça · Islândia",s:5,p:"a",f:["agro","premium","ig"],x:"Cruzar IGs de café com torrefadores exportadores"},
+ {n:"Mobiliário de design",ncm:"Cap. 94",t:"Industrial: tarifa zero imediata",m:"Suíça · Noruega",s:4,p:"a",f:["premium","industria"],x:"Prospecção de showrooms e arquitetos de alto padrão"},
+ {n:"Pedras ornamentais e peças arquitetônicas",ncm:"Cap. 68",t:"Industrial: tarifa zero imediata · IGs de pedras protegidas",m:"Suíça · Noruega",s:4,p:"a",f:["premium","industria","ig"],x:"Validar regra de origem do beneficiamento"},
+ {n:"Calçados e couro",ncm:"Cap. 64 / 42",t:"Industrial: tarifa zero imediata · IGs de calçados",m:"Suíça",s:4,p:"b",f:["premium","industria","ig"],x:"Testar conteúdo não originário de componentes"},
+ {n:"Cachaça e vinhos com IG",ncm:"2204 / 2208",t:"Agro: modalidade por produto; IG protegida",m:"Suíça · Liechtenstein",s:4,p:"b",f:["agro","premium","ig"],x:"Conferir cronograma no Manual de Desgravação"},
+ {n:"Queijos artesanais com IG",ncm:"0406",t:"Agro sensível: provável cota ou regime específico",m:"Suíça",s:2,p:"c",f:["agro","ig"],x:"Verificar cota e exigência sanitária antes de prometer acesso"},
+ {n:"Pescados e frutos do mar",ncm:"Cap. 03",t:"Pesqueiro: tarifa zero imediata",m:"Noruega · Islândia (concorrentes fortes)",s:2,p:"c",f:["industria"],x:"Avaliar só nichos (tilápia, camarão de alto valor)"},
+ {n:"Wellness e suplementos naturais",ncm:"2106 / 1302",t:"Depende da classificação: industrial ou agro",m:"Suíça · Noruega",s:3,p:"b",f:["premium"],x:"Classificação fiscal define o tratamento"},
+ {n:"Têxteis e artesanato com IG",ncm:"Cap. 50 a 63",t:"Industrial: tarifa zero imediata · IGs de artesanato",m:"Suíça",s:3,p:"b",f:["premium","industria","ig"],x:"Posicionar como produto de origem, não commodity"}
+];
+const PL={a:"Alta",b:"Média",c:"Monitorar"};
+let F="todos";
+const tb=document.getElementById("tb"),q=document.getElementById("q");
+function render(){const s=q.value.toLowerCase();
+ const r=D.filter(d=>(F==="todos"||d.f.includes(F))&&(d.n+d.ncm+d.m+d.t).toLowerCase().includes(s));
+ tb.innerHTML=r.length?r.map(d=>`<tr><td class="nome">${d.n}<small>NCM ${d.ncm}</small></td><td>${d.t}</td><td>${d.m}</td><td><div class="score" aria-label="${d.s} de 5">${[1,2,3,4,5].map(i=>`<i class="${i<=d.s?'on':''}"></i>`).join("")}</div></td><td><span class="sel ${d.p}">${PL[d.p]}</span></td><td>${d.x}</td></tr>`).join(""):`<tr><td colspan="6">Nenhum item para este filtro.</td></tr>`;}
+document.querySelectorAll(".filtros button").forEach(b=>b.onclick=()=>{F=b.dataset.f;document.querySelectorAll(".filtros button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();});
+q.oninput=render;render();
+const C=["NCM confirmada e tratamento localizado","Regra de origem atendida e documentada","Fornecedores com declaração de origem","Exigências técnicas do mercado mapeadas","Preço recalculado com tarifa preferencial","Lista de importadores e distribuidores","Material comercial no idioma do mercado"];
+let st={};try{st=JSON.parse(localStorage.getItem("ca-hub-efta-chk")||"{}")}catch(e){}
+const ck=document.getElementById("chk"),cp=document.getElementById("chkp");
+function upd(){const n=C.filter((_,i)=>st[i]).length;cp.textContent=`${n} de ${C.length} etapas concluídas`;}
+ck.innerHTML=C.map((c,i)=>`<label><input type="checkbox" id="c${i}" ${st[i]?"checked":""}> ${c}</label>`).join("");
+ck.onchange=e=>{const i=e.target.id.slice(1);st[i]=e.target.checked;try{localStorage.setItem("ca-hub-efta-chk",JSON.stringify(st))}catch(x){}upd();};upd();
+</script>
+</body>
+</html>
