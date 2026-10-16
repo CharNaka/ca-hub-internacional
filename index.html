@@ -599,24 +599,36 @@ Café Robusta Verde | 0901.11.10 | 300 | kg | 13.17</textarea></div>
 
   <!-- PAINEL -->
   <section class="view" id="v-painel">
-    <div class="sec-kicker">Comex Stat / MDIC</div>
+    <div class="sec-kicker">Comex Stat / MDIC · dados oficiais ao vivo</div>
     <h2 class="sec-title">Painel de Comércio por Nichos Premium <span class="tag live">ComexStat ao vivo</span></h2>
-    <p class="lead">Exportação (e importação) brasileira por nicho premium do CDN, direto do ComexStat (MDIC). Escolha o nicho e o ano e consulte os destinos líderes ao vivo.</p>
-    <div class="card card-pad" style="margin-bottom:20px">
-      <div class="row r3" style="max-width:760px">
-        <div class="field" style="margin-bottom:0"><label>Nicho premium</label><select id="pcNicho"></select></div>
-        <div class="field" style="margin-bottom:0"><label>Fluxo</label><select id="pcFlow"><option value="export">Exportação</option><option value="import">Importação</option></select></div>
-        <div class="field" style="margin-bottom:0"><label>Ano</label><input id="pcYear" value="2024"></div>
+    <p class="lead">Exportação e importação brasileira acumulada no ano, direto da API pública do Comex Stat (MDIC), para os 8 nichos premium não commodities acompanhados pela CA. Rotas por país e modal de transporte, atualizadas a cada visita — sem etapa de configuração.</p>
+
+    <div id="pcTabs" class="no-print" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+    <div id="pcFlowToggle" class="no-print" style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="btn btn-sm" data-flow="export">Exportação</button>
+      <button class="btn btn-sm" data-flow="import">Importação</button>
+    </div>
+
+    <div class="grid g4" id="pcKpis" style="margin-bottom:20px"></div>
+
+    <div class="grid g2" style="margin-bottom:20px">
+      <div class="card card-pad">
+        <h4 style="font-size:15px;color:var(--k-800);margin-bottom:14px">Rotas · país × modal × FOB</h4>
+        <div style="overflow-x:auto"><table class="data" id="pcRoutesTable"><thead><tr><th>País</th><th>Modal</th><th style="text-align:right">FOB US$</th><th style="text-align:right">% do nicho</th></tr></thead><tbody></tbody></table></div>
       </div>
-      <button class="btn btn-gold no-print" style="margin-top:12px" onclick="renderPainelComex()">Consultar ao vivo</button>
+      <div class="card card-pad"><h4 style="font-size:15px;color:var(--k-800);margin-bottom:14px">Top países (FOB US$)</h4><canvas id="pcBar" height="240"></canvas></div>
     </div>
-    <div class="grid g3" id="pcKpis" style="margin-bottom:20px"></div>
+
     <div class="grid g2">
-      <div class="card card-pad"><h4 style="font-size:15px;color:var(--k-800);margin-bottom:14px">Top destinos (US$)</h4><canvas id="pcBar" height="220"></canvas></div>
-      <div class="card card-pad"><h4 style="font-size:15px;color:var(--k-800);margin-bottom:14px">Tendência 5 anos</h4><canvas id="pcLine" height="220"></canvas></div>
+      <div class="card card-pad"><h4 style="font-size:15px;color:var(--k-800);margin-bottom:14px">Distribuição por modal</h4><canvas id="pcDonut" height="220"></canvas></div>
+      <div class="card card-pad">
+        <h4 style="font-size:15px;color:var(--k-800);margin-bottom:14px">NCM acompanhados neste nicho</h4>
+        <div id="pcNcmList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      </div>
     </div>
-    <div id="pcMsg" class="note" style="margin-top:16px">Ative "ao vivo" em Fontes de Dados para consultar o ComexStat.</div>
-    <div class="sources"><b>Fonte oficial</b><span class="src-chip">ComexStat (MDIC)</span></div>
+
+    <div id="pcMsg" class="note" style="margin-top:16px">Consultando ComexStat…</div>
+    <div class="sources"><b>Fonte oficial</b><span class="src-chip">ComexStat (MDIC)</span><span class="src-chip" id="pcPeriodChip">—</span></div>
   </section>
 
   <!-- CDN -->
@@ -1270,24 +1282,131 @@ function setRadar(id,url){const s=JSON.parse(localStorage.getItem('ca_radar')||'
 
 /* PBI */
 function savePbi(){}
-const PC_NICHOS=[['Café','0901'],['Joias e semijoias','7113'],['Dermocosméticos/beleza','3304'],['Suplementos/nutracosméticos','2106'],['Farmácia e distribuidoras','3004'],['Vinhos e whiskey','2204'],['Móveis/decoração/design','9403'],['Vestuário feminino','6204'],['Vestuário masculino','6203'],['Maquinário linha amarela','8429'],['Leite e derivados','0402'],['Agronegócio (soja)','1201'],['Pet shop','2309']];
-let pcBar=null,pcLine=null;
-async function renderPainelComex(){
-  var sel=$('pcNicho'); if(sel&&!sel.options.length){PC_NICHOS.forEach(function(n,i){sel.add(new Option(n[0],i))});}
-  var c=loadCFG(); var msg=$('pcMsg'); if(!sel){return;}
-  if(!c.live||!c.apiBase){msg.innerHTML='<span style="color:var(--warn)">Ative "ao vivo" em Fontes de Dados para consultar o ComexStat.</span>';return;}
-  var nic=PC_NICHOS[sel.value||0]; msg.textContent='Consultando ComexStat para '+nic[0]+'…';
+
+/* PAINEL COMEX — NICHOS (CA): 8 nichos premium, dados ao vivo direto da API pública Comex Stat/MDIC (sem proxy, sem config) */
+const PC_NICHOS_CA=[
+  {key:'moveis',label:'Móveis, Design e Decoração',filter:'heading',values:[9401,9403,9404,9405]},
+  {key:'joias',label:'Joias',filter:'heading',values:[7113,7114,7116,7117]},
+  {key:'skincare',label:'Skincare',filter:'heading',values:[3304,3401]},
+  {key:'fitness',label:'Wear & Fitness',filter:'heading',values:[9506,6112]},
+  {key:'haircare',label:'Haircare',filter:'heading',values:[3305]},
+  {key:'vestuario',label:'Vestuário e Calçados',filter:'chapter',values:[61,62,64]},
+  {key:'chocolates',label:'Chocolates',filter:'heading',values:[1806]},
+  {key:'bebidas',label:'Cachaça, Vinhos e Whiskey',filter:'heading',values:[2204,2208]},
+];
+const PC_VIA_LABELS={MARITIMA:'Marítima',AEREA:'Aérea',RODOVIARIA:'Rodoviária',FERROVIARIA:'Ferroviária',FLUVIAL:'Fluvial',LACUSTRE:'Lacustre',POSTAL:'Postal',DUTOVIARIA:'Dutoviária'};
+let pcState={niche:'moveis',flow:'export',cache:{},period:null};
+let pcBarChart=null,pcDonutChart=null;
+
+function pcToday(){return new Date().toISOString().slice(0,10);}
+
+async function pcDetectPeriod(){
+  const cached=JSON.parse(localStorage.getItem('ca_pc_period')||'null');
+  if(cached&&cached.day===pcToday())return cached.period;
+  const now=new Date();const year=now.getUTCFullYear(),month=now.getUTCMonth()+1;
+  if(month<=2){const per={from:(year-1)+'-01',to:(year-1)+'-12'};try{localStorage.setItem('ca_pc_period',JSON.stringify({day:pcToday(),period:per}));}catch(e){}return per;}
+  for(let back=1;back<=3;back++){
+    const mm=month-back; if(mm<1)break;
+    const to=year+'-'+String(mm).padStart(2,'0');
+    try{
+      const r=await fetch('https://api-comexstat.mdic.gov.br/general',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({flow:'export',monthDetail:true,period:{from:to,to:to},filters:[{filter:'heading',values:[9401]}],details:['country'],metrics:['metricFOB']})});
+      const j=await r.json();
+      if(j&&j.data&&j.data.list&&j.data.list.length){
+        const per={from:year+'-01',to:to};
+        try{localStorage.setItem('ca_pc_period',JSON.stringify({day:pcToday(),period:per}));}catch(e){}
+        return per;
+      }
+    }catch(e){}
+  }
+  return {from:year+'-01',to:year+'-'+String(Math.max(month-2,1)).padStart(2,'0')};
+}
+
+async function pcFetchFlow(nicho,flow){
+  const r=await fetch('https://api-comexstat.mdic.gov.br/general',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({flow:flow,monthDetail:false,period:pcState.period,filters:[{filter:nicho.filter,values:nicho.values}],details:['country','via'],metrics:['metricFOB']})});
+  const j=await r.json();
+  const rows=(j&&j.data&&j.data.list)||[];
+  const cleaned=rows.map(row=>({country:row.country||'N/D',via:row.via||'N/D',fob:parseFloat(row.metricFOB)||0}));
+  cleaned.sort((a,b)=>b.fob-a.fob);
+  const total=cleaned.reduce((s,row)=>s+row.fob,0);
+  return {rows:cleaned.slice(0,25),total:total};
+}
+
+async function pcLoadNicho(key){
+  if(pcState.cache[key])return pcState.cache[key];
   try{
-    var r=await fetch(c.apiBase+'/comexstat?ncm='+nic[1]+'&flow='+$('pcFlow').value+'&year='+encodeURIComponent($('pcYear').value));
-    var j=await r.json();
-    if(j.error||!j.dest||!j.dest.length){msg.innerHTML='<span style="color:var(--warn)">Sem dados para '+nic[0]+' nesse ano.</span>';return;}
-    msg.innerHTML='<b>'+nic[0]+'</b> (SH4 '+nic[1]+') · '+$('pcFlow').value+' '+$('pcYear').value+' · ComexStat ao vivo';
-    $('pcKpis').innerHTML='<div class="kpi"><div class="k-label">Total</div><div class="k-val">US$ '+(j.total/1e9).toFixed(2)+' bi</div><div class="k-sub">ano '+$('pcYear').value+'</div></div><div class="kpi"><div class="k-label">Destinos</div><div class="k-val">'+j.dest.length+'+</div><div class="k-sub">com fluxo</div></div><div class="kpi"><div class="k-label">Líder</div><div class="k-val" style="font-size:20px">'+j.dest[0].name+'</div><div class="k-sub">US$ '+(j.dest[0].fob/1e6).toFixed(0)+'M</div></div>';
-    var gold='#C9A84C',navy='#242422';
-    if(pcBar)pcBar.destroy(); if(pcLine)pcLine.destroy();
-    pcBar=new Chart($('pcBar'),{type:'bar',data:{labels:j.dest.map(function(d){return d.name}),datasets:[{data:j.dest.map(function(d){return +(d.fob/1e9).toFixed(2)}),backgroundColor:navy,borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:function(v){return 'US$ '+v+'B'}}}}}});
-    if(j.trend&&j.trend.length){pcLine=new Chart($('pcLine'),{type:'line',data:{labels:j.trend.map(function(t){return t.year}),datasets:[{data:j.trend.map(function(t){return +(t.fob/1e9).toFixed(2)}),borderColor:gold,backgroundColor:'rgba(201,168,76,.12)',fill:true,tension:.35,pointBackgroundColor:navy}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:function(v){return 'US$ '+v+'B'}}}}}});}
-  }catch(e){msg.innerHTML='<span style="color:var(--high)">Falha na consulta ao ComexStat.</span>';}
+    const stored=JSON.parse(localStorage.getItem('ca_pc_cache_'+key)||'null');
+    if(stored&&stored.day===pcToday()){pcState.cache[key]=stored.data;return stored.data;}
+  }catch(e){}
+  const nicho=PC_NICHOS_CA.find(n=>n.key===key);
+  const [exp,imp]=await Promise.all([pcFetchFlow(nicho,'export'),pcFetchFlow(nicho,'import')]);
+  const data={export:exp.rows,export_total:exp.total,import:imp.rows,import_total:imp.total};
+  pcState.cache[key]=data;
+  try{localStorage.setItem('ca_pc_cache_'+key,JSON.stringify({day:pcToday(),data:data}));}catch(e){}
+  return data;
+}
+
+function pcFmtUSD(v){if(v>=1e9)return 'US$ '+(v/1e9).toFixed(2)+' bi';if(v>=1e6)return 'US$ '+(v/1e6).toFixed(1)+' mi';if(v>=1e3)return 'US$ '+(v/1e3).toFixed(0)+' mil';return 'US$ '+v.toFixed(0);}
+function pcFmtFull(v){return v.toLocaleString('pt-BR',{maximumFractionDigits:0});}
+
+function pcBuildTabs(){
+  const el=$('pcTabs');if(!el)return;
+  el.innerHTML='';
+  PC_NICHOS_CA.forEach(n=>{
+    const b=document.createElement('button');
+    b.className='btn btn-sm '+(n.key===pcState.niche?'btn-gold':'btn-ghost');
+    b.textContent=n.label;
+    b.onclick=()=>{pcState.niche=n.key;renderPainelComex();};
+    el.appendChild(b);
+  });
+}
+function pcBuildFlowToggle(){
+  const el=$('pcFlowToggle');if(!el)return;
+  el.querySelectorAll('button').forEach(b=>{
+    b.className='btn btn-sm '+(b.dataset.flow===pcState.flow?'btn-gold':'btn-ghost');
+    b.onclick=()=>{pcState.flow=b.dataset.flow;renderPainelComex();};
+  });
+}
+
+async function renderPainelComex(){
+  pcBuildTabs();pcBuildFlowToggle();
+  const msg=$('pcMsg');if(msg)msg.textContent='Consultando ComexStat ao vivo…';
+  if(!pcState.period)pcState.period=await pcDetectPeriod();
+  const periodChip=$('pcPeriodChip');if(periodChip)periodChip.textContent='Período: '+pcState.period.from+' a '+pcState.period.to;
+  let data;
+  try{ data=await pcLoadNicho(pcState.niche); }
+  catch(e){ if(msg)msg.innerHTML='<span style="color:var(--high)">Falha ao consultar o ComexStat agora. Tente novamente em alguns segundos.</span>'; return; }
+  const nicho=PC_NICHOS_CA.find(n=>n.key===pcState.niche);
+  const rows=data[pcState.flow]||[];
+  const total=data[pcState.flow+'_total']||0;
+  const byCountry={},byVia={};
+  rows.forEach(r=>{byCountry[r.country]=(byCountry[r.country]||0)+r.fob;byVia[r.via]=(byVia[r.via]||0)+r.fob;});
+  const topCountry=Object.entries(byCountry).sort((a,b)=>b[1]-a[1])[0];
+  const topVia=Object.entries(byVia).sort((a,b)=>b[1]-a[1])[0];
+
+  $('pcKpis').innerHTML=
+    '<div class="kpi"><div class="k-label">FOB total · '+(pcState.flow==='export'?'exportação':'importação')+'</div><div class="k-val" style="font-size:24px">'+pcFmtUSD(total)+'</div><div class="k-sub">'+pcState.period.from+' – '+pcState.period.to+'</div></div>'+
+    '<div class="kpi"><div class="k-label">Principal parceiro</div><div class="k-val" style="font-size:19px">'+(topCountry?topCountry[0]:'—')+'</div><div class="k-sub">'+(topCountry?pcFmtUSD(topCountry[1]):'')+'</div></div>'+
+    '<div class="kpi"><div class="k-label">Modal predominante</div><div class="k-val" style="font-size:19px">'+(topVia?(PC_VIA_LABELS[topVia[0]]||topVia[0]):'—')+'</div><div class="k-sub">'+(topVia?pcFmtUSD(topVia[1]):'')+'</div></div>'+
+    '<div class="kpi"><div class="k-label">NCM acompanhados</div><div class="k-val" style="font-size:24px">'+nicho.values.length+'</div><div class="k-sub">'+nicho.filter+'</div></div>';
+
+  const tbody=$('pcRoutesTable').querySelector('tbody');
+  tbody.innerHTML=rows.map(r=>{
+    const pct=total>0?(r.fob/total*100):0;
+    return '<tr><td>'+r.country+'</td><td>'+(PC_VIA_LABELS[r.via]||r.via)+'</td><td style="text-align:right">'+pcFmtFull(r.fob)+'</td><td style="text-align:right">'+pct.toFixed(1)+'%</td></tr>';
+  }).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--ink-soft)">Sem dados para este fluxo.</td></tr>';
+
+  $('pcNcmList').innerHTML=nicho.values.map(v=>'<span class="pill">'+nicho.filter+' '+v+'</span>').join('');
+
+  const gold='#C9A84C',navy='#242422';
+  const barEntries=Object.entries(byCountry).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(pcBarChart)pcBarChart.destroy();
+  pcBarChart=new Chart($('pcBar'),{type:'bar',data:{labels:barEntries.map(e=>e[0]),datasets:[{data:barEntries.map(e=>e[1]),backgroundColor:navy,borderRadius:5}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>pcFmtUSD(v)}}}}});
+
+  const viaEntries=Object.entries(byVia).sort((a,b)=>b[1]-a[1]);
+  if(pcDonutChart)pcDonutChart.destroy();
+  pcDonutChart=new Chart($('pcDonut'),{type:'doughnut',data:{labels:viaEntries.map(e=>PC_VIA_LABELS[e[0]]||e[0]),datasets:[{data:viaEntries.map(e=>e[1]),backgroundColor:[gold,'#896B28','#E2C97A','#575249','#B9822C','#2f7d5b','#5a6b7a','#a33a34']}]},options:{plugins:{legend:{position:'bottom'}}}});
+
+  if(msg)msg.innerHTML='<b>'+nicho.label+'</b> · '+(pcState.flow==='export'?'exportação':'importação')+' · ComexStat ao vivo (top 25 rotas por FOB; o total soma todas as rotas retornadas pela API)';
 }
 
 /* DRIVE */
