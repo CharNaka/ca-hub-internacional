@@ -1301,7 +1301,9 @@ let pcBarChart=null,pcDonutChart=null;
 function pcToday(){return new Date().toISOString().slice(0,10);}
 function pcDelay(ms){return new Promise(res=>setTimeout(res,ms));}
 
-/* POST com retry/backoff em 429 (limite de requisições do ComexStat) — até 5 tentativas, espera crescente */
+/* POST com retry/backoff em 429 (limite de requisições do ComexStat) — até 6 tentativas, espera crescente.
+   Lança erro se esgotar as tentativas ainda limitado, ou se a resposta não vier utilizável — nunca retorna
+   silenciosamente um resultado vazio como se fosse "zero" de verdade. */
 async function pcPost(body,attempt){
   attempt=attempt||1;
   let r,j;
@@ -1310,10 +1312,13 @@ async function pcPost(body,attempt){
     try{ j=await r.json(); }catch(e){ j=null; }
   }catch(e){ r=null; j=null; }
   const limited = (r&&r.status===429) || (j&&j.error&&j.error.code===429);
-  if(limited && attempt<5){
-    await pcDelay(Math.min(2000*Math.pow(2,attempt-1),15000));
+  if(limited && attempt<6){
+    await pcDelay(Math.min(2500*Math.pow(2,attempt-1),20000));
     return pcPost(body,attempt+1);
   }
+  if(limited) throw new Error('ComexStat: limite de requisições atingido, tente novamente em instantes.');
+  if(!j || (!j.data && !j.error)) throw new Error('ComexStat: resposta inesperada da API.');
+  if(j.error) throw new Error('ComexStat: '+(j.error.message||('erro '+j.error.code)));
   return j;
 }
 
@@ -1325,7 +1330,9 @@ async function pcDetectPeriod(){
   for(let back=1;back<=3;back++){
     const mm=month-back; if(mm<1)break;
     const to=year+'-'+String(mm).padStart(2,'0');
-    const j=await pcPost({flow:'export',monthDetail:true,period:{from:to,to:to},filters:[{filter:'heading',values:[9401]}],details:['country'],metrics:['metricFOB']});
+    let j=null;
+    try{ j=await pcPost({flow:'export',monthDetail:true,period:{from:to,to:to},filters:[{filter:'heading',values:[9401]}],details:['country'],metrics:['metricFOB']}); }
+    catch(e){ j=null; }
     if(j&&j.data&&j.data.list&&j.data.list.length){
       const per={from:year+'-01',to:to};
       try{localStorage.setItem('ca_pc_period',JSON.stringify({day:pcToday(),period:per}));}catch(e){}
