@@ -1299,6 +1299,23 @@ let pcState={niche:'moveis',flow:'export',cache:{},period:null};
 let pcBarChart=null,pcDonutChart=null;
 
 function pcToday(){return new Date().toISOString().slice(0,10);}
+function pcDelay(ms){return new Promise(res=>setTimeout(res,ms));}
+
+/* POST com retry/backoff em 429 (limite de requisições do ComexStat) — até 5 tentativas, espera crescente */
+async function pcPost(body,attempt){
+  attempt=attempt||1;
+  let r,j;
+  try{
+    r=await fetch('https://api-comexstat.mdic.gov.br/general',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    try{ j=await r.json(); }catch(e){ j=null; }
+  }catch(e){ r=null; j=null; }
+  const limited = (r&&r.status===429) || (j&&j.error&&j.error.code===429);
+  if(limited && attempt<5){
+    await pcDelay(Math.min(2000*Math.pow(2,attempt-1),15000));
+    return pcPost(body,attempt+1);
+  }
+  return j;
+}
 
 async function pcDetectPeriod(){
   const cached=JSON.parse(localStorage.getItem('ca_pc_period')||'null');
@@ -1308,22 +1325,19 @@ async function pcDetectPeriod(){
   for(let back=1;back<=3;back++){
     const mm=month-back; if(mm<1)break;
     const to=year+'-'+String(mm).padStart(2,'0');
-    try{
-      const r=await fetch('https://api-comexstat.mdic.gov.br/general',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({flow:'export',monthDetail:true,period:{from:to,to:to},filters:[{filter:'heading',values:[9401]}],details:['country'],metrics:['metricFOB']})});
-      const j=await r.json();
-      if(j&&j.data&&j.data.list&&j.data.list.length){
-        const per={from:year+'-01',to:to};
-        try{localStorage.setItem('ca_pc_period',JSON.stringify({day:pcToday(),period:per}));}catch(e){}
-        return per;
-      }
-    }catch(e){}
+    const j=await pcPost({flow:'export',monthDetail:true,period:{from:to,to:to},filters:[{filter:'heading',values:[9401]}],details:['country'],metrics:['metricFOB']});
+    if(j&&j.data&&j.data.list&&j.data.list.length){
+      const per={from:year+'-01',to:to};
+      try{localStorage.setItem('ca_pc_period',JSON.stringify({day:pcToday(),period:per}));}catch(e){}
+      return per;
+    }
+    if(back<3)await pcDelay(1500);
   }
   return {from:year+'-01',to:year+'-'+String(Math.max(month-2,1)).padStart(2,'0')};
 }
 
 async function pcFetchFlow(nicho,flow){
-  const r=await fetch('https://api-comexstat.mdic.gov.br/general',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({flow:flow,monthDetail:false,period:pcState.period,filters:[{filter:nicho.filter,values:nicho.values}],details:['country','via'],metrics:['metricFOB']})});
-  const j=await r.json();
+  const j=await pcPost({flow:flow,monthDetail:false,period:pcState.period,filters:[{filter:nicho.filter,values:nicho.values}],details:['country','via'],metrics:['metricFOB']});
   const rows=(j&&j.data&&j.data.list)||[];
   const cleaned=rows.map(row=>({country:row.country||'N/D',via:row.via||'N/D',fob:parseFloat(row.metricFOB)||0}));
   cleaned.sort((a,b)=>b.fob-a.fob);
@@ -1338,7 +1352,9 @@ async function pcLoadNicho(key){
     if(stored&&stored.day===pcToday()){pcState.cache[key]=stored.data;return stored.data;}
   }catch(e){}
   const nicho=PC_NICHOS_CA.find(n=>n.key===key);
-  const [exp,imp]=await Promise.all([pcFetchFlow(nicho,'export'),pcFetchFlow(nicho,'import')]);
+  const exp=await pcFetchFlow(nicho,'export');
+  await pcDelay(1500);
+  const imp=await pcFetchFlow(nicho,'import');
   const data={export:exp.rows,export_total:exp.total,import:imp.rows,import_total:imp.total};
   pcState.cache[key]=data;
   try{localStorage.setItem('ca_pc_cache_'+key,JSON.stringify({day:pcToday(),data:data}));}catch(e){}
