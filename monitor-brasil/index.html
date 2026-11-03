@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Monitor Brasil 2027-2030</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap">
+<style>
+/* Layout: cabeçalho preto CA com resumo do balanço, abas temáticas, cartões em champagne; dados vêm de dados.json */
+:root{
+  --bg:#F5F0E8; --surface:#FBF8F2; --ink:#141414; --muted:#5F574C; --line:#DCCFB6;
+  --gold:#C9A84C; --gold-d:#8A6B28; --tabaco:#5A3D24; --on-dark:#F5F0E8;
+  --ok:#3E6B3F; --warn:#9A6A12; --risk:#8A3B2A;
+  --serif:"Cormorant Garamond",Garamond,"Times New Roman",serif;
+  --sans:"Montserrat","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141414; --surface:#1D1A16; --ink:#F5F0E8; --muted:#BFB4A2; --line:#3A3227;
+  --gold-d:#E2C97A; --tabaco:#7C5C3E; --ok:#8FBF8A; --warn:#E2C97A; --risk:#E39B86; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141414; --surface:#1D1A16; --ink:#F5F0E8; --muted:#BFB4A2; --line:#3A3227;
+  --gold-d:#E2C97A; --tabaco:#7C5C3E; --ok:#8FBF8A; --warn:#E2C97A; --risk:#E39B86; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:14px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 56px}
+h1,h2,h3{font-family:var(--serif);font-weight:400;text-wrap:balance;margin:0}
+p{margin:0;text-align:justify}
+a{color:var(--gold-d)}
+.lbl{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-d);font-weight:500}
+header.top{background:#141414;color:#F5F0E8;border-bottom:2px solid #C9A84C}
+header.top .wrap{padding-block:28px 26px;display:grid;gap:14px}
+.brand{display:flex;gap:10px;align-items:baseline;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#D9CFBF}
+.brand b{font-family:var(--serif);font-size:26px;letter-spacing:.05em;color:#C9A84C;font-weight:400}
+header h1{font-size:clamp(32px,5vw,50px);line-height:1.05}
+header h1 em{color:#C9A84C;font-style:italic}
+header .res{color:#D9CFBF;max-width:90ch}
+.stamp{font-size:11.5px;color:#BFB4A2;letter-spacing:.06em;display:flex;gap:6px 18px;flex-wrap:wrap}
+.stamp b{color:#C9A84C;font-weight:500}
+nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav.tabs .wrap{display:flex;gap:2px;overflow-x:auto;padding-block:0;scrollbar-width:thin}
+nav.tabs button{font:inherit;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:14px 14px 12px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--gold)}
+nav.tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+section.pane{display:none;margin-top:30px;gap:22px}
+section.pane.on{display:grid}
+.sec-h{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--gold);padding-bottom:10px}
+.sec-h h2{font-size:30px}
+.sec-h span{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.kpi{background:var(--surface);padding:16px 18px;display:grid;gap:4px;min-width:0}
+.kpi .n{font-family:var(--serif);font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .d{font-size:12px;color:var(--muted)}
+.up{color:var(--risk)} .dn{color:var(--ok)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--gold);padding:16px 18px;display:grid;gap:8px;align-content:start;min-width:0}
+.card h3{font-size:22px;line-height:1.15}
+.card p{font-size:13px;color:var(--muted)}
+.filtros{display:flex;flex-wrap:wrap;gap:8px}
+.filtros button{font:inherit;font-size:12px;background:transparent;color:var(--ink);border:1px solid var(--line);padding:7px 13px;cursor:pointer}
+.filtros button[aria-pressed="true"]{background:var(--tabaco);border-color:var(--tabaco);color:#F5F0E8}
+.filtros button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:0;border-left:1px solid var(--gold);margin-left:6px}
+.tl li{position:relative;padding:0 0 22px 22px;display:grid;gap:5px}
+.tl li::before{content:"";position:absolute;left:-5px;top:7px;width:9px;height:9px;background:var(--gold)}
+.tl .meta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:11.5px;color:var(--muted)}
+.tl .meta b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.tl h3{font-family:var(--sans);font-size:15px;font-weight:600}
+.tl p{font-size:13.5px;color:var(--ink)}
+.tl .src{font-size:11.5px;color:var(--muted)}
+.chip{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;padding:2px 8px;color:#F5F0E8;background:var(--tabaco)}
+.chip.economia{background:#5A3D24}.chip.governo{background:#141414}.chip.justica{background:#3B342C}.chip.congresso{background:#4E5B6B}.chip.exterior{background:#3E5A4E}.chip.integridade{background:#6B3A2A}.chip.regulacao{background:#8A6B28}
+.stt{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:1px solid currentColor;padding:1px 6px}
+.stt.andamento{color:var(--warn)}.stt.resolvido{color:var(--muted)}.stt.vigor{color:var(--ink)}
+.tscroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;text-align:left;color:#F5F0E8;background:var(--tabaco);padding:9px 12px;font-weight:600;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right}
+.empty{background:var(--surface);border:1px dashed var(--line);padding:18px;font-size:13px;color:var(--muted);text-align:justify}
+.ind{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:22px;align-items:center;background:var(--surface);border:1px solid var(--line);padding:20px}
+.ind .score{font-family:var(--serif);font-size:56px;line-height:1;color:var(--gold-d)}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:4px 12px;font-size:12.5px}
+.bar small{grid-column:1/-1;color:var(--muted);font-size:11.5px}
+.bar .t{height:6px;background:var(--line);grid-column:1/-1}
+.bar .t i{display:block;height:100%;background:var(--gold)}
+.frame{border:1px solid var(--line);overflow:hidden}
+.frame iframe{width:100%;height:88vh;border:0;display:block}
+footer{margin-top:40px;border-top:1px solid var(--gold);padding-top:14px;font-size:12px;color:var(--muted);display:grid;gap:6px}
+@media (max-width:760px){.ind{grid-template-columns:minmax(0,1fr)}.kpi .n{font-size:28px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand"><b>CA</b> Inteligência · Monitor de risco político e regulatório</div>
+  <h1>Monitor Brasil <em>2027-2030</em></h1>
+  <p class="res" id="resumo">Carregando o balanço…</p>
+  <div class="stamp"><span>Edição: <b id="edicao"></b></span><span>Atualizado em <b id="upd"></b></span><span>Próximo balanço: <b id="nxt"></b></span></div>
+</div></header>
+
+<nav class="tabs" aria-label="Seções do monitor"><div class="wrap" role="tablist" id="tabs"></div></nav>
+
+<main class="wrap">
+
+<section class="pane on" id="p-visao">
+  <div class="sec-h"><h2>Visão geral</h2><span>Marco zero: 25/10/2026</span></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="grid3" id="leitura"></div>
+  <div class="sec-h"><h2>Índice CA de Previsibilidade Brasil</h2><span id="indSt"></span></div>
+  <div class="ind" id="indice"></div>
+</section>
+
+<section class="pane" id="p-termo">
+  <div class="sec-h"><h2>Termômetro econômico</h2><span>Câmbio, Bolsa, juros e rating</span></div>
+  <div class="tscroll"><table><thead><tr><th>Data</th><th>Marco</th><th class="n">Dólar (R$)</th><th class="n">Ibovespa</th><th class="n">DI jan/31</th><th class="n">Selic</th><th>Nota</th></tr></thead><tbody id="tInd"></tbody></table></div>
+  <div class="grid3" id="rating"></div>
+</section>
+
+<section class="pane" id="p-linha">
+  <div class="sec-h"><h2>Linha do tempo do mandato</h2><span>O que foi anunciado, feito ou deixado de fazer</span></div>
+  <div class="filtros" id="fLinha"></div>
+  <ul class="tl" id="tl"></ul>
+</section>
+
+<section class="pane" id="p-cargos">
+  <div class="sec-h"><h2>Ministérios e cargos-chave</h2><span>Quem decide e o que sinaliza</span></div>
+  <div class="tscroll"><table><thead><tr><th>Cargo</th><th>Titular</th><th>Desde</th><th>Perfil público</th><th>Sinal para o setor privado</th></tr></thead><tbody id="tCargos"></tbody></table></div>
+</section>
+
+<section class="pane" id="p-integ">
+  <div class="sec-h"><h2>Integridade e investigações</h2><span>Somente casos com ato oficial</span></div>
+  <div id="integ"></div>
+</section>
+
+<section class="pane" id="p-mundo">
+  <div class="sec-h"><h2>Brasil no mundo</h2><span>Acordos, tarifas e relação externa</span></div>
+  <ul class="tl" id="tlMundo"></ul>
+</section>
+
+<section class="pane" id="p-agenda">
+  <div class="sec-h"><h2>Calendário de risco</h2><span>Datas que mexem com preço, regra e decisão</span></div>
+  <div class="tscroll"><table><thead><tr><th>Data</th><th>Evento</th><th>Por que importa</th></tr></thead><tbody id="tAgenda"></tbody></table></div>
+</section>
+
+<section class="pane" id="p-eleicoes">
+  <div class="sec-h"><h2>Eleições 2026</h2><span>Resultado final registrado pelo painel da CA</span></div>
+  <div class="kpis" id="kEleicoes"></div>
+  <div class="frame"><iframe id="frElei" title="Painel Eleições 2026" loading="lazy"></iframe></div>
+</section>
+
+<section class="pane" id="p-metodo">
+  <div class="sec-h"><h2>Metodologia e critérios</h2><span>Como este monitor é feito</span></div>
+  <div class="grid3">
+    <div class="card"><span class="lbl">Abrangência</span><h3>Todos os Poderes</h3><p>Executivo, Congresso, STF e tribunais superiores, Banco Central, agências reguladoras e estatais. O risco para quem investe vem do conjunto, não de um único Poder.</p></div>
+    <div class="card"><span class="lbl">Fontes</span><h3>Fato com fonte</h3><p>Órgãos oficiais e imprensa profissional, com link em cada registro. Nada que venha apenas de redes sociais. Projeções de mercado são identificadas como projeções.</p></div>
+    <div class="card"><span class="lbl">Integridade</span><h3>Ato oficial como régua</h3><p>Entram apenas casos com operação policial, denúncia, decisão de tribunal ou de controle externo, com o status do caso e o mesmo critério para qualquer partido ou Poder.</p></div>
+    <div class="card"><span class="lbl">Perfis</span><h3>Trajetória pública</h3><p>Cargos, posições declaradas, votos e decisões. Nenhuma informação de vida privada.</p></div>
+    <div class="card"><span class="lbl">Atualização</span><h3>Balanço mensal</h3><p>Todo dia 25, com resumo enviado por e-mail à CA. Eventos de grande impacto podem gerar atualização extraordinária.</p></div>
+    <div class="card"><span class="lbl">Uso</span><h3>Previsibilidade</h3><p>Material de apoio à decisão de empresários que internacionalizam e de investidores estrangeiros que avaliam o Brasil. Não constitui recomendação de investimento.</p></div>
+  </div>
+</section>
+
+<footer>
+  <span>CA Consultoria Internacional · Monitor Brasil 2027-2030 · uso interno e de clientes</span>
+  <span>Dados do monitor: <a href="dados.json" target="_blank" rel="noopener">dados.json</a></span>
+</footer>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf=(x,d=0)=>x==null?"n/d":x.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const CAT={todos:"Todos",economia:"Economia",governo:"Governo",congresso:"Congresso",justica:"Justiça e STF",regulacao:"Regulação",exterior:"Exterior",integridade:"Integridade"};
+const STN={andamento:"em andamento",resolvido:"resolvido",vigor:"em vigor"};
+const TABS=[["visao","Visão geral"],["termo","Termômetro"],["linha","Linha do tempo"],["cargos","Cargos-chave"],["integ","Integridade"],["mundo","Brasil no mundo"],["agenda","Calendário de risco"],["eleicoes","Eleições 2026"],["metodo","Metodologia"]];
+$("tabs").innerHTML=TABS.map(([k,t],i)=>`<button role="tab" data-k="${k}" aria-selected="${i===0}">${t}</button>`).join("");
+function show(k){document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.k===k));document.querySelectorAll(".pane").forEach(p=>p.classList.toggle("on",p.id==="p-"+k));if(k==="eleicoes"&&!$("frElei").src&&window.D)$("frElei").src=D.eleicoes.link;try{history.replaceState(null,"","#"+k)}catch(e){}}
+$("tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)show(b.dataset.k)});
+function item(a){return `<li><div class="meta"><b>${esc(a.d)}</b><span class="chip ${esc(a.cat)}">${esc(CAT[a.cat]||a.cat)}</span>${a.imp?`<span>${esc(a.imp)}</span>`:""}${STN[a.st]?`<span class="stt ${a.st}">${STN[a.st]}</span>`:""}</div><h3>${esc(a.t)}</h3><p>${esc(a.x)}</p><span class="src">Fonte: ${(a.src||[]).map(s=>`<a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.n)}</a>`).join(" · ")}</span></li>`}
+let filtro="todos";
+function renderLinha(){$("tl").innerHTML=D.linha.filter(a=>filtro==="todos"||a.cat===filtro).map(item).join("")||`<li><p>Nenhum registro nesta categoria.</p></li>`;$("fLinha").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.c===filtro))}
+function render(){
+  $("resumo").textContent=D.resumo;$("edicao").textContent=D.edicao;$("upd").textContent=D.updated;$("nxt").textContent=D.next;
+  const I=D.indicadores, a=I[0], z=I[I.length-1];
+  const pct=(n,o)=>o&&n?((n/o-1)*100):null;
+  const k=[["Dólar",`R$ ${nf(z.dolar,2)}`,pct(z.dolar,a.dolar),"vs. "+a.d,true],["Ibovespa",nf(z.ibov),pct(z.ibov,a.ibov),"vs. "+a.d,false],["DI jan/31",`${nf(z.di31,2)}%`,z.di31-a.di31,"p.p. vs. "+a.d,true,"pp"],["Selic",`${nf(z.selic,2)}%`,null,"Copom de 04/11/2026"]];
+  $("kpis").innerHTML=k.map(([t,v,c,s,bad,u])=>`<div class="kpi"><span class="lbl">${t}</span><span class="n">${v}</span><span class="d">${c==null?esc(s):`<span class="${(c>0)===bad?"up":"dn"}">${c>0?"+":""}${nf(c,u==="pp"?2:1)}${u==="pp"?"":"%"}</span> ${esc(s)}`}</span></div>`).join("")+`<div class="kpi"><span class="lbl">Último registro</span><span class="n" style="font-size:22px">${esc(z.d)}</span><span class="d">${esc(z.nota)}</span></div>`;
+  $("leitura").innerHTML=D.leitura.map(l=>`<div class="card"><span class="lbl">Leitura para</span><h3>${esc(l.p)}</h3><p>${esc(l.t)}</p></div>`).join("");
+  const X=D.indice;$("indSt").textContent=X.status;
+  $("indice").innerHTML=`<div><span class="lbl">Leitura atual</span><div class="score"${X.valor==null?' style="font-size:30px"':""}>${X.valor==null?"Em calibração":X.valor}</div><p style="font-size:12.5px;color:var(--muted);margin-top:8px">${esc(X.nota)}</p></div><div class="bars">${X.componentes.map(c=>`<div class="bar"><span>${esc(c[0])}</span><b style="text-align:right">${esc(c[1])}</b><div class="t"><i style="width:${parseFloat(c[1])*4}%"></i></div><small>${esc(c[2])}</small></div>`).join("")}</div>`;
+  $("tInd").innerHTML=I.map(r=>`<tr><td>${esc(r.d)}</td><td>${esc(r.rot)}</td><td class="n">${nf(r.dolar,4)}</td><td class="n">${nf(r.ibov)}</td><td class="n">${r.di31==null?"n/d":nf(r.di31,2)+"%"}</td><td class="n">${nf(r.selic,2)}%</td><td>${esc(r.nota)}</td></tr>`).join("");
+  $("rating").innerHTML=D.rating.map(r=>`<div class="card"><span class="lbl">Rating soberano</span><h3>${esc(r.ag)}: ${esc(r.nota)}</h3><p>Perspectiva ${esc(r.persp).toLowerCase()}. Abaixo do grau de investimento.</p></div>`).join("");
+  const cats=["todos",...new Set(D.linha.map(a=>a.cat))];
+  $("fLinha").innerHTML=cats.map(c=>`<button type="button" data-c="${c}" aria-pressed="false">${CAT[c]||c}</button>`).join("");
+  $("fLinha").onclick=e=>{const b=e.target.closest("button");if(b){filtro=b.dataset.c;renderLinha()}};renderLinha();
+  $("tCargos").innerHTML=D.cargos.map(c=>`<tr><td><span class="lbl" style="display:block">${esc(c.g)}</span>${esc(c.c)}</td><td><b style="font-weight:600">${esc(c.n)}</b></td><td>${esc(c.desde)}</td><td>${esc(c.p)}</td><td>${esc(c.s)}</td></tr>`).join("");
+  $("integ").innerHTML=(D.integridade.length?`<ul class="tl">${D.integridade.map(item).join("")}</ul>`:"")+`<div class="empty">${esc(D.integridade_nota)}</div>`;
+  $("tlMundo").innerHTML=D.linha.filter(a=>a.cat==="exterior").map(item).join("")||"<li><p>Sem registros.</p></li>";
+  $("tAgenda").innerHTML=D.agenda.map(a=>`<tr><td style="white-space:nowrap"><b style="font-weight:600">${esc(a.d)}</b></td><td>${esc(a.e)}</td><td>${esc(a.w)}</td></tr>`).join("");
+  const E=D.eleicoes;
+  $("kEleicoes").innerHTML=`<div class="kpi"><span class="lbl">Brasil · Lula</span><span class="n">${nf(E.brasil.pl,2)}%</span><span class="d">${nf(E.brasil.lula)} votos</span></div><div class="kpi"><span class="lbl">Brasil · Flávio</span><span class="n">${nf(E.brasil.pf,2)}%</span><span class="d">${nf(E.brasil.flavio)} votos</span></div><div class="kpi"><span class="lbl">Exterior · Lula x Flávio</span><span class="n">${nf(E.exterior.pl,2)}%</span><span class="d">${nf(E.exterior.pf,2)}% Flávio · ${E.exterior.paises} países</span></div><div class="kpi"><span class="lbl">Total geral TSE</span><span class="n">${nf(E.geral.pl,2)}%</span><span class="d">${E.brasil.urnas.toString().replace(".",",")}% das urnas · ${esc(E.brasil.hora)}</span></div>`;
+  const h=(location.hash||"").slice(1);if(TABS.some(t=>t[0]===h))show(h);
+}
+fetch("dados.json",{cache:"no-store",credentials:"same-origin"}).then(r=>r.json()).then(d=>{window.D=d;render()}).catch(()=>{$("resumo").textContent="Não foi possível carregar os dados do monitor. Recarregue a página."});
+})();
+</script>
+</body>
+</html>
