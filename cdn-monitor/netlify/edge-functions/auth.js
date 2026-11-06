@@ -1,6 +1,6 @@
 // Acesso ao Monitor Brasil 2027-2030 dos membros do CDN. Independente do CA Hub.
 // A senha fica na variável de ambiente CDN_PASSWORD deste site no Netlify, nunca no código.
-// Para trocar a senha: altere CDN_PASSWORD no Netlify; os acessos antigos caem na hora.
+// Para trocar a senha: altere CDN_PASSWORD no Netlify e publique o site de novo (a troca só vale após novo deploy).
 const COOKIE = "cdn_monitor_auth";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 dias
 
