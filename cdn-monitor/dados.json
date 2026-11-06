@@ -1,0 +1,382 @@
+{
+ "updated": "02/11/2026",
+ "next": "25/11/2026 às 16h52 (Brasília)",
+ "edicao": "Carga inicial · marco zero 25/10/2026",
+ "resumo": "Primeira semana do quarto mandato marcada pelo choque de mercado: o Ibovespa teve a pior semana desde março de 2020 (cerca de 18% de queda) e o dólar a maior alta semanal desde 2008, fechando a R$ 5,446 em 30/10. A resposta do governo veio em intenção (busca do centro da meta fiscal de 2027 e revisão de estímulos), ainda sem número nem nome para a Fazenda, prometido até o fim do ano. A campanha derrotada contesta o resultado na Justiça; ministros do TSE avaliam que o pedido não deve avançar. Copom decide em 4/11 com Selic em 13,75%.",
+ "leitura": [
+  {
+   "p": "Empresário brasileiro",
+   "t": "Custo de capital alto por mais tempo e câmbio volátil. Receita em moeda forte e diversificação de mercados deixam de ser opcionais. Proteger pedidos de importação do 1º trimestre de 2027."
+  },
+  {
+   "p": "Investidor estrangeiro",
+   "t": "Ativos brasileiros ficaram cerca de 25% mais baratos em dólar em uma semana. O gatilho de reprecificação é a equipe econômica e um número fiscal crível; até lá, entrada gradual e com proteção cambial."
+  },
+  {
+   "p": "Soft landing",
+   "t": "Janela para negociar ativos, imóveis comerciais e aquisições com desconto cambial. Atenção à transição tributária: CBS plena em 01/01/2027."
+  }
+ ],
+ "eleicoes": {
+  "link": "https://eleicoes2026.caconsultoriainternacional.com/",
+  "brasil": {
+   "lula": 63895413,
+   "flavio": 59565294,
+   "pl": 51.75,
+   "pf": 48.25,
+   "urnas": 99.79,
+   "hora": "25/10/2026 21h15"
+  },
+  "geral": {
+   "pl": 51.76,
+   "pf": 48.24
+  },
+  "exterior": {
+   "lula": 191130,
+   "flavio": 166628,
+   "pl": 53.42,
+   "pf": 46.58,
+   "urnas": 95.11,
+   "paises": 127
+  }
+ },
+ "indicadores": [
+  {
+   "d": "23/10/2026",
+   "rot": "Pré-2º turno",
+   "dolar": 4.98,
+   "ibov": 205082,
+   "di31": 12.64,
+   "selic": 13.75,
+   "nota": "Sexta anterior ao 2º turno"
+  },
+  {
+   "d": "26/10/2026",
+   "rot": "Dia 1",
+   "dolar": 5.4029,
+   "ibov": 176608,
+   "di31": 15.25,
+   "selic": 13.75,
+   "nota": "Circuit breaker; dólar +8,2%, Ibovespa −13,9%"
+  },
+  {
+   "d": "27/10/2026",
+   "rot": "Dia 2",
+   "dolar": 5.349,
+   "ibov": null,
+   "di31": null,
+   "selic": 13.75,
+   "nota": "Dólar recua 1,07%; Ibovespa −0,51%"
+  },
+  {
+   "d": "30/10/2026",
+   "rot": "Fim da semana 1",
+   "dolar": 5.446,
+   "ibov": 167922,
+   "di31": 15.3,
+   "selic": 13.75,
+   "nota": "Semana: dólar +9,15%, Ibovespa −18,1%"
+  }
+ ],
+ "rating": [
+  {
+   "ag": "S&P",
+   "nota": "BB",
+   "persp": "Estável"
+  },
+  {
+   "ag": "Fitch",
+   "nota": "BB",
+   "persp": "Estável"
+  },
+  {
+   "ag": "Moody's",
+   "nota": "Ba1",
+   "persp": "Estável"
+  }
+ ],
+ "linha": [
+  {
+   "d": "30/10/2026",
+   "cat": "economia",
+   "t": "Pior semana da Bolsa desde 2020",
+   "x": "Ibovespa fecha a 167.922 pontos (−18,1% na semana, −9,8% em outubro); dólar a R$ 5,446, maior alta semanal desde 2008. DI jan/31 passa de 12,64% para 15,3%.",
+   "imp": "Custo de capital e câmbio",
+   "st": "info",
+   "src": [
+    {
+     "n": "CNN Brasil",
+     "u": "https://www.cnnbrasil.com.br/economia/money/mercado/mercado-financeiro-ibovespa-dolar-30-outubro-2026/"
+    },
+    {
+     "n": "Sou Brasília",
+     "u": "https://soubrasilia.com/dolar-bolsa-semana-pos-eleicao-30-outubro-2026-copom/"
+    }
+   ]
+  },
+  {
+   "d": "26/10/2026",
+   "cat": "governo",
+   "t": "Fazenda promete mirar o centro da meta de 2027",
+   "x": "Dario Durigan anuncia mudança na regra fiscal ainda em 2026 para buscar o centro da meta (superávit de 0,5% do PIB) e redução de estímulos, sem novo número. Tesouro recompra R$ 7,1 bi em títulos.",
+   "imp": "Fiscal",
+   "st": "andamento",
+   "src": [
+    {
+     "n": "Poder360",
+     "u": "https://www.poder360.com.br/poder-economia/apos-reacao-negativa-do-mercado-durigan-diz-que-vai-ampliar-superavit/"
+    },
+    {
+     "n": "Brasil 247",
+     "u": "https://www.brasil247.com/economia/durigan-coordena-com-bc-compra-de-titulos-pelo-tesouro-para-conter-disparada-do-dolar/"
+    }
+   ]
+  },
+  {
+   "d": "26/10/2026",
+   "cat": "governo",
+   "t": "Ministro da Fazenda do novo mandato até o fim do ano",
+   "x": "Segundo o presidente do PT, Edinho Silva, Lula escolhe o ministro até dezembro e manterá o superávit; propõe revisar incentivos fiscais (cerca de 4% do PIB). Cotados citados pela imprensa: Alckmin, Rafael Fonteles, Durigan e Moretti.",
+   "imp": "Equipe econômica",
+   "st": "andamento",
+   "src": [
+    {
+     "n": "A Crítica",
+     "u": "https://acritica.net/politica/lula-escolhera-ministro-da-fazenda-ate-o-fim-do-ano-e-mantera-meta-fiscal-diz-edinho/"
+    },
+    {
+     "n": "DCM",
+     "u": "https://diariodocentrodomundo.com.br/cotados-ministerio-fazenda-governo-lula"
+    }
+   ]
+  },
+  {
+   "d": "26/10/2026",
+   "cat": "justica",
+   "t": "Campanha derrotada contesta o resultado",
+   "x": "Flávio Bolsonaro diz que não reconhece o resultado e pede a anulação, com base na prorrogação da votação. Ministros do TSE avaliam que o pedido não deve avançar; ações dessa natureza não suspendem a posse.",
+   "imp": "Risco institucional",
+   "st": "andamento",
+   "src": [
+    {
+     "n": "Seu Dinheiro",
+     "u": "https://www.seudinheiro.com/2026/politica/flavio-bolsonaro-diz-que-vai-questionar-resultado-da-eleicao-apos-derrota-para-lula-e-inaceitavel-ccgg/"
+    },
+    {
+     "n": "Gazeta do Povo",
+     "u": "https://www.gazetadopovo.com.br/republica/flavio-bolsonaro-questiona-resultado-do-segundo-turno-na-justica/"
+    },
+    {
+     "n": "Imirante",
+     "u": "https://m.imirante.com/noticias/brasil/2026/10/26/ipolitica-tse-descarta-pedido-flavio-bolsonaro-contra-eleicao"
+    }
+   ]
+  },
+  {
+   "d": "26/10/2026",
+   "cat": "exterior",
+   "t": "Reconhecimento internacional",
+   "x": "China, Rússia, Índia, União Europeia, França, Espanha, Canadá, México, Chile, Paraguai, Peru, Colômbia e Equador cumprimentam o presidente reeleito. EUA e Argentina não se manifestam no primeiro dia.",
+   "imp": "Relação externa",
+   "st": "info",
+   "src": [
+    {
+     "n": "BPMoney",
+     "u": "https://bpmoney.com.br/mundo/lideres-internacionais-parabenizam-lula-reeleicao-eua-silencio/"
+    }
+   ]
+  },
+  {
+   "d": "26/10/2026",
+   "cat": "economia",
+   "t": "Primeiro pregão: circuit breaker",
+   "x": "Dólar fecha a R$ 5,40 (+8,2%), máxima de R$ 5,60; Ibovespa −13,9%, primeiro circuit breaker desde 2020. Tesouro cancela leilões de 27 a 29/10.",
+   "imp": "Câmbio e Bolsa",
+   "st": "info",
+   "src": [
+    {
+     "n": "Exame",
+     "u": "https://exame.com/live-blog/invest/bolsa-dolar-mercado-26-outubro-apos-eleicoes/"
+    },
+    {
+     "n": "InfoMoney",
+     "u": "https://www.infomoney.com.br/mercados/ibovespa-hoje-bolsa-de-valores-ao-vivo-26102026/"
+    }
+   ]
+  },
+  {
+   "d": "25/10/2026",
+   "cat": "governo",
+   "t": "Discurso da vitória sem sinal fiscal",
+   "x": "Prioridades citadas: regulação de plataformas digitais, data centers com energia renovável, inteligência artificial nacional e economia verde e criativa. Sem menção a contas públicas.",
+   "imp": "Agenda",
+   "st": "info",
+   "src": [
+    {
+     "n": "Estado de Minas",
+     "u": "https://www.em.com.br/politica/platobr/2026/10/7527784-no-discurso-da-vitoria-poucos-sinais-sobre-a-economia-e-nada-sobre-contas-publicas.html"
+    }
+   ]
+  },
+  {
+   "d": "25/10/2026",
+   "cat": "justica",
+   "t": "Prorrogação da votação até 19h",
+   "x": "Ministro Cristiano Zanin (STF) estende a votação após relatos de redução do transporte público; o TSE pausa a divulgação das 17h27 às 19h03. As duas campanhas haviam pedido prorrogações.",
+   "imp": "Risco institucional",
+   "st": "resolvido",
+   "src": [
+    {
+     "n": "InfoMoney",
+     "u": "https://www.infomoney.com.br/politica/tse-pausa-totalizacao-dos-votos-apos-zanin-prorrogar-votacao-ate-as-19h/"
+    }
+   ]
+  }
+ ],
+ "cargos": [
+  {
+   "g": "Presidência",
+   "c": "Presidente da República",
+   "n": "Luiz Inácio Lula da Silva",
+   "desde": "01/01/2023 (reeleito em 25/10/2026)",
+   "p": "Quarto mandato a partir de 05/01/2027.",
+   "s": "Prioridades declaradas: plataformas digitais, data centers, IA, economia verde."
+  },
+  {
+   "g": "Presidência",
+   "c": "Vice-presidente",
+   "n": "Geraldo Alckmin",
+   "desde": "01/01/2023 (reeleito)",
+   "p": "Ex-governador de São Paulo; conduziu o MDIC e o programa Nova Indústria Brasil.",
+   "s": "Citado entre os cotados para a Fazenda."
+  },
+  {
+   "g": "Equipe econômica",
+   "c": "Ministro da Fazenda",
+   "n": "Dario Durigan",
+   "desde": "20/03/2026",
+   "p": "Ex-secretário executivo da Fazenda; assumiu com a saída de Fernando Haddad para disputar a eleição.",
+   "s": "Prometeu buscar o centro da meta fiscal de 2027. Nome do novo mandato será definido até dezembro."
+  },
+  {
+   "g": "Equipe econômica",
+   "c": "Presidente do Banco Central",
+   "n": "Gabriel Galípolo",
+   "desde": "01/01/2025",
+   "p": "Ex-diretor de Política Monetária do BC e ex-secretário executivo da Fazenda.",
+   "s": "Copom de 3 e 4/11 é o primeiro teste pós-eleição; Selic em 13,75%."
+  },
+  {
+   "g": "Judiciário",
+   "c": "Presidente do TSE",
+   "n": "Kassio Nunes Marques",
+   "desde": "2026",
+   "p": "Ministro do STF indicado em 2020.",
+   "s": "Conduz a análise das contestações do resultado."
+  },
+  {
+   "g": "Judiciário",
+   "c": "STF: vaga de Luís Roberto Barroso",
+   "n": "Vaga aberta",
+   "desde": "18/10/2025",
+   "p": "Senado rejeitou a indicação de Jorge Messias em 29/04/2026.",
+   "s": "Primeira de até 4 indicações até 2030 (Fux 2028, Cármen Lúcia 2029, Gilmar Mendes 2030)."
+  }
+ ],
+ "integridade": [],
+ "integridade_nota": "Nenhum caso com ato oficial novo (operação da PF, denúncia do MPF, decisão do TCU ou do STF) foi registrado nesta carga inicial. A varredura completa entra no balanço de 25/11/2026. Critério: apenas fatos com ato oficial, com status do caso e o mesmo critério para todos os partidos e Poderes.",
+ "agenda": [
+  {
+   "d": "04/11/2026",
+   "e": "Decisão do Copom",
+   "w": "Primeira decisão de juros pós-eleição; mercado espera pausa com Selic em 13,75%."
+  },
+  {
+   "d": "09/11/2026",
+   "e": "Boletim Focus",
+   "w": "Primeiras semanas de projeções coletadas após a eleição."
+  },
+  {
+   "d": "12/11/2026",
+   "e": "Resultado da Natura (3T26)",
+   "w": "Termômetro do consumo e do setor de beleza."
+  },
+  {
+   "d": "até 15/12/2026",
+   "e": "Senado fixa a alíquota de referência da CBS",
+   "w": "Define a carga do novo tributo que entra em vigor em 2027."
+  },
+  {
+   "d": "até 31/12/2026",
+   "e": "Anúncio do ministro da Fazenda do novo mandato",
+   "w": "Principal gatilho de reprecificação do câmbio e dos juros."
+  },
+  {
+   "d": "01/01/2027",
+   "e": "CBS plena, fim de PIS/Cofins e IPI zerado",
+   "w": "Exceto produtos com industrialização incentivada na Zona Franca de Manaus."
+  },
+  {
+   "d": "01/01/2027",
+   "e": "Reajuste do valor do EB-5 (EUA)",
+   "w": "Afeta quem planeja residência americana por investimento."
+  },
+  {
+   "d": "05/01/2027",
+   "e": "Posse do quarto mandato",
+   "w": "Início formal; composição da Esplanada."
+  },
+  {
+   "d": "26/04/2028",
+   "e": "Aposentadoria compulsória de Luiz Fux (STF)",
+   "w": "Renovação da Corte com efeito em jurisprudência tributária e trabalhista."
+  },
+  {
+   "d": "2028",
+   "e": "Eleições municipais",
+   "w": "Termômetro político de meio de mandato."
+  },
+  {
+   "d": "2029",
+   "e": "Início da transição do ICMS/ISS para o IBS",
+   "w": "Mudança estrutural para quem vende no país."
+  },
+  {
+   "d": "30/12/2030",
+   "e": "Aposentadoria compulsória de Gilmar Mendes (STF)",
+   "w": "Última indicação prevista no mandato."
+  }
+ ],
+ "indice": {
+  "status": "em calibração",
+  "valor": null,
+  "nota": "Primeira leitura publicada no balanço de 25/11/2026, com metodologia aberta.",
+  "componentes": [
+   [
+    "Estabilidade fiscal",
+    "25%",
+    "Dívida bruta, primário e cumprimento de meta"
+   ],
+   [
+    "Câmbio e juros",
+    "20%",
+    "Volatilidade do dólar, Selic, curva DI longa"
+   ],
+   [
+    "Segurança jurídica e regulatória",
+    "20%",
+    "Mudanças de regra, decisões do STF de impacto econômico, insegurança tributária"
+   ],
+   [
+    "Estabilidade institucional",
+    "15%",
+    "Trocas em cargos-chave, conflitos entre Poderes, casos de integridade com ato oficial"
+   ],
+   [
+    "Relação externa e comercial",
+    "20%",
+    "Tarifas, acordos em vigor, relação com EUA, China e UE"
+   ]
+  ]
+ }
+}

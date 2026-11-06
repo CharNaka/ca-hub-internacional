@@ -1,0 +1,10 @@
+# Site do Monitor Brasil 2027-2030 para membros do CDN. Separado do CA Hub: senha própria (CDN_PASSWORD).
+# Gerado por tools/build-cdn-monitor.sh; não edite index.html nem dados.json aqui.
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Robots-Tag = "noindex, nofollow"
